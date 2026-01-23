@@ -196,7 +196,7 @@ const Form = () => {
                                         <label><User size={14} /> Full Name</label>
                                         <input
                                             type="text"
-                                            placeholder="John Doe"
+                                            placeholder="john doe"
                                             value={signupData.name}
                                             onChange={(e) => { setSignupData({ ...signupData, name: e.target.value }); setSignupError(""); }}
                                         />

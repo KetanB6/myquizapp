@@ -2,15 +2,15 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Trash2, ChevronLeft, ChevronRight, Save, Layout, Clock, Mail, CheckCircle, ArrowRight, Loader2 } from 'lucide-react'; // Added Loader2
+import { Plus, Trash2, ChevronLeft, ChevronRight, Save, Layout, Clock, Mail, CheckCircle, ArrowRight, Loader2 } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
 
 const CreatePage = () => {
   const [phase, setPhase] = useState(0);
-  const [loading, setLoading] = useState(false); // Added global loading state
+  const [loading, setLoading] = useState(false);
 
   const [quizInfo, setQuizInfo] = useState({
-    quizId: 184044,
+    quizId: null, // Start as null to accept JPA ID
     duration: 10,
     email: "",
     quizTitle: "",
@@ -19,7 +19,7 @@ const CreatePage = () => {
 
   const [questions, setQuestions] = useState([
     {
-      quizId: 184044,
+      quizId: null, // Will be updated after Phase 0
       question: "",
       a: "",
       b: "",
@@ -38,18 +38,10 @@ const CreatePage = () => {
     if (userData) {
       try {
         const parsedUser = JSON.parse(userData);
-        const userEmail = parsedUser?.email;
-        if (userEmail) {
-          setQuizInfo(prev => ({ ...prev, email: userEmail }));
-        } else {
-          setQuizInfo(prev => ({ ...prev, email: "Email not found in profile" }));
-        }
+        setQuizInfo(prev => ({ ...prev, email: parsedUser?.email || "Email not found" }));
       } catch (e) {
         console.error("Error parsing user data:", e);
-        setQuizInfo(prev => ({ ...prev, email: "Error loading user" }));
       }
-    } else {
-      setQuizInfo(prev => ({ ...prev, email: "No user logged in" }));
     }
   }, []);
 
@@ -63,9 +55,8 @@ const CreatePage = () => {
       return;
     }
 
-    setLoading(true); // START LOADER
+    setLoading(true);
     const step1Payload = {
-      quizId: quizInfo.quizId,
       duration: parseInt(quizInfo.duration),
       createdBy: quizInfo.email,
       quizTitle: quizInfo.quizTitle,
@@ -81,14 +72,27 @@ const CreatePage = () => {
 
       if (response.ok) {
         const savedQuizFromServer = await response.json();
-        const newQuizId = savedQuizFromServer.quizId;
 
-        if (newQuizId) {
-          setQuizInfo(prev => ({ ...prev, quizId: newQuizId }));
-          toast.success(`Quiz saved! ID: ${newQuizId}`);
-        }
-        toast.success("Quiz info saved!");
-        setPhase(1);
+        // Handle both 'quizId' or 'id' depending on JPA naming
+
+        
+        console.log("SUCCESS: Received Quiz ID from JPA:", savedQuizFromServer);
+        //setPhase(1);
+         if (savedQuizFromServer) {
+           // 1. Update Quiz Info
+           setQuizInfo(prev => ({ ...prev, quizId: savedQuizFromServer }));
+           
+           // 2. IMPORTANT: Inject this ID into all existing questions immediately
+           setQuestions(prevQuestions => 
+             prevQuestions.map(q => ({ ...q, quizId: savedQuizFromServer }))
+           );
+ 
+           toast.success(`Quiz Registered! ID: ${savedQuizFromServer}`);
+           setPhase(1);
+         } else {
+           console.error("Server responded but no ID found in:", savedQuizFromServer);
+           toast.error("Server didn't return a Quiz ID");
+         }
       } else {
         toast.error(`Backend Error: ${response.status}`);
       }
@@ -96,12 +100,13 @@ const CreatePage = () => {
       toast.error("Error connecting to backend.");
       console.error(error);
     } finally {
-      setLoading(false); // STOP LOADER
+      setLoading(false);
     }
   };
 
   const handlePublish = async () => {
-    setLoading(true); // START LOADER
+    setLoading(true);
+    // Use the quizId stored in state
     const payload = questions.map((q) => ({
       quizId: quizInfo.quizId,
       question: q.question,
@@ -112,34 +117,34 @@ const CreatePage = () => {
       correctOpt: `opt${q.correct.toLowerCase() === 'a' ? '1' : q.correct.toLowerCase() === 'b' ? '2' : q.correct.toLowerCase() === 'c' ? '3' : '4'}`
     }));
 
+    console.log("Publishing Payload with Quiz ID:", quizInfo.quizId, payload);
+
     try {
       const response = await fetch('https://noneditorial-professionally-serena.ngrok-free.dev/Questions', {
         method: 'POST',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
-          'ngrok-skip-browser-warning': 'true' 
+          'ngrok-skip-browser-warning': 'true'
         },
         body: JSON.stringify(payload)
       });
 
       if (response.ok) {
-        toast.success("All questions saved to database!");
+        toast.success("All questions saved!");
         window.location.href = "/dashboard";
       } else {
-        const errorText = await response.text();
-        console.error("Server Error Detail:", errorText);
         toast.error(`Failed: ${response.status}`);
       }
     } catch (error) {
       toast.error("Connection failed.");
-      console.error(error);
     } finally {
-      setLoading(false); // STOP LOADER
+      setLoading(false);
     }
   };
 
   const addSlide = () => {
-    setQuestions([...questions, { question: "", a: "", b: "", c: "", d: "", correct: "a" }]);
+    // Ensure new slides also carry the correct quizId
+    setQuestions([...questions, { quizId: quizInfo.quizId, question: "", a: "", b: "", c: "", d: "", correct: "a" }]);
     setCurrentSlide(questions.length);
     toast.success("New slide added!");
   };
@@ -149,7 +154,6 @@ const CreatePage = () => {
       toast.error("You need at least one question!");
       return;
     }
-    toast.success("Slide removed!");
     const newQuestions = questions.filter((_, i) => i !== index);
     setQuestions(newQuestions);
     setCurrentSlide(Math.max(0, index - 1));
@@ -174,9 +178,9 @@ const CreatePage = () => {
           <h2>{phase === 0 ? "Step 1: Quiz Details" : `Step 2: Add Questions`}</h2>
           {phase === 1 && (
             <div className="mini-badge">
-              <span>{quizInfo.quizTitle}</span>
+              <span>ID: {quizInfo.quizId}</span>
               <span className="dot">•</span>
-              <span>{quizInfo.duration} mins</span>
+              <span>{quizInfo.quizTitle}</span>
             </div>
           )}
         </div>
@@ -193,7 +197,6 @@ const CreatePage = () => {
 
       <MainContainer>
         <AnimatePresence mode="wait">
-
           {phase === 0 && (
             <SlideCard
               key="info-card"
@@ -225,7 +228,7 @@ const CreatePage = () => {
                 </FormGroup>
 
                 <FormGroup $primary={primaryColor}>
-                  <label><Mail size={16} /> Created By (ReadOnly)</label>
+                  <label><Mail size={16} /> Created By</label>
                   <input
                     type="email"
                     className="clean-input disabled"
@@ -236,16 +239,11 @@ const CreatePage = () => {
                 </FormGroup>
               </div>
 
-              <FormGroup $primary={primaryColor}>
-                <label><CheckCircle size={16} /> Status</label>
-                <div className="status-badge">ACTIVE</div>
-              </FormGroup>
-
               <ActionArea>
                 <SaveBtn
                   $primary={primaryColor}
                   onClick={validateAndProceed}
-                  disabled={loading} // Disable during load
+                  disabled={loading}
                   whileHover={loading ? {} : { scale: 1.02 }}
                   whileTap={loading ? {} : { scale: 0.98 }}
                 >
@@ -264,7 +262,7 @@ const CreatePage = () => {
 
                 <div className="internal-nav">
                   <NavBtn onClick={() => setCurrentSlide(Math.max(0, currentSlide - 1))} disabled={currentSlide === 0 || loading}>
-                    <ChevronLeft /> Prev Question
+                    <ChevronLeft /> Prev
                   </NavBtn>
                   <NavBtn onClick={() => setCurrentSlide(Math.min(questions.length - 1, currentSlide + 1))} disabled={currentSlide === questions.length - 1 || loading}>
                     Next <ChevronRight />
@@ -283,7 +281,7 @@ const CreatePage = () => {
                 </DeleteBtn>
 
                 <FormGroup $primary={primaryColor}>
-                  <label>Question {currentSlide + 1} Content</label>
+                  <label>Question {currentSlide + 1} (Quiz ID: {quizInfo.quizId})</label>
                   <textarea
                     disabled={loading}
                     value={questions[currentSlide].question}
@@ -323,10 +321,10 @@ const CreatePage = () => {
                 <AddBtn $primary={primaryColor} onClick={addSlide} disabled={loading}>
                   <Plus size={20} /> Add Question
                 </AddBtn>
-                <SaveBtn 
-                  $primary={primaryColor} 
-                  onClick={handlePublish} 
-                  disabled={loading} // Disable during load
+                <SaveBtn
+                  $primary={primaryColor}
+                  onClick={handlePublish}
+                  disabled={loading}
                   whileHover={loading ? {} : { scale: 1.02 }}
                   whileTap={loading ? {} : { scale: 0.98 }}
                 >
@@ -335,32 +333,19 @@ const CreatePage = () => {
               </ActionArea>
             </div>
           )}
-
         </AnimatePresence>
       </MainContainer>
     </PageWrapper>
   );
 };
 
-/* --- Styled Components CSS Additions --- */
-// Add the spinning animation to your CSS
+/* --- STYLES REMAIN SAME --- */
 const PageWrapper = styled.div`
-  min-height: 100vh;
-  padding: 40px 20px;  
-  color: white;
-
-  .spinner {
-    animation: spin 1s linear infinite;
-  }
-
-  @keyframes spin {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
-  }
+  min-height: 100vh; padding: 40px 20px; color: white;
+  .spinner { animation: spin 1s linear infinite; }
+  @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 `;
 
-// Remaining styled components...
-// (No change to others, except SaveBtn opacity for disabled state)
 const SaveBtn = styled(motion.button)`
   flex: 1; padding: 16px; background: ${props => props.$primary}; border: none;
   color: white; border-radius: 12px; cursor: pointer; font-weight: bold;
@@ -369,111 +354,59 @@ const SaveBtn = styled(motion.button)`
   &:disabled { opacity: 0.6; cursor: not-allowed; }
 `;
 
-// ... [rest of your styled components] ...
 const ContentHeader = styled(motion.div)`
-  max-width: 800px;
-  margin: 0 auto 40px;
-  
+  max-width: 800px; margin: 0 auto 40px;
   .header-content { text-align: center; margin-bottom: 20px; }
   h2 { font-size: 1.8rem; margin-bottom: 10px; color: ${props => props.$primary}; }
-  
   .mini-badge {
     display: inline-flex; gap: 10px; align-items: center;
     background: rgba(255,255,255,0.1); padding: 5px 15px; border-radius: 20px; font-size: 0.9rem;
     .dot { color: ${props => props.$primary}; }
   }
-
   .progress-text { font-size: 0.8rem; color: #e0f2fe; margin-bottom: 8px; text-align: center; }
 `;
 
 const ProgressBar = styled.div`
   width: 100%; height: 6px; background: rgba(255,255,255,0.05); border-radius: 10px; overflow: hidden;
-  .fill { 
-    height: 100%; 
-    background: ${props => props.$primary}; 
-    transition: 0.5s ease; 
-    box-shadow: 0 0 10px ${props => props.$primary}; 
-  }
+  .fill { height: 100%; background: ${props => props.$primary}; transition: 0.5s ease; box-shadow: 0 0 10px ${props => props.$primary}; }
 `;
 
 const MainContainer = styled.div`
   max-width: 800px; margin: 0 auto;
-  .nav-controls {
-    display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;
-  }
+  .nav-controls { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
   .internal-nav { display: flex; gap: 10px; }
 `;
 
 const SlideCard = styled(motion.div)`
-  background: rgba(255, 255, 255, 0.03);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 20px;
-  padding: 40px;
-  position: relative;
-  box-shadow: 0 20px 50px rgba(0,0,0,0.3);
-
+  background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px; padding: 40px; position: relative; box-shadow: 0 20px 50px rgba(0,0,0,0.3);
   .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 30px; }
   .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-  
-  @media (max-width: 600px) { 
-    .options-grid, .grid-2 { grid-template-columns: 1fr; } 
-  }
+  @media (max-width: 600px) { .options-grid, .grid-2 { grid-template-columns: 1fr; } }
 `;
 
 const FormGroup = styled.div`
   margin-bottom: 20px;
-  label { 
-    display: flex; align-items: center; gap: 8px;
-    color: ${props => props.$primary}; 
-    font-size: 0.85rem; 
-    font-weight: bold; 
-    text-transform: uppercase; 
-    margin-bottom: 10px; 
-  }
-  
-  textarea, .clean-input {
-    width: 100%; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 10px; padding: 15px; color: white; font-size: 1.1rem; outline: none;
-    &:focus { border-color: ${props => props.$primary}; background: rgba(0,0,0,0.4); }
-  }
-  
+  label { display: flex; align-items: center; gap: 8px; color: ${props => props.$primary}; font-size: 0.85rem; font-weight: bold; text-transform: uppercase; margin-bottom: 10px; }
+  textarea, .clean-input { width: 100%; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; padding: 15px; color: white; font-size: 1.1rem; outline: none; &:focus { border-color: ${props => props.$primary}; background: rgba(0,0,0,0.4); } }
   textarea { height: 100px; resize: none; }
-  
-  .disabled {
-    opacity: 0.6; cursor: not-allowed; background: rgba(255,255,255,0.02);
-  }
-
-  .status-badge {
-    background: rgba(46, 204, 113, 0.2); color: #2ecc71; 
-    padding: 10px; border-radius: 8px; display: inline-block; font-weight: bold; font-size: 0.9rem;
-    border: 1px solid rgba(46, 204, 113, 0.3);
-  }
+  .disabled { opacity: 0.6; cursor: not-allowed; background: rgba(255,255,255,0.02); }
 `;
 
 const OptionInput = styled.div`
-  display: flex; align-items: center; gap: 10px; 
-  background: ${props => props.$isCorrect ? `${props.$primary}1a` : 'rgba(255,255,255,0.02)'};
-  border: 1px solid ${props => props.$isCorrect ? props.$primary : 'rgba(255,255,255,0.08)'};
-  padding: 10px 15px; border-radius: 12px; transition: 0.2s;
-  
-  &:hover { background: rgba(255,255,255,0.05); }
-
+  display: flex; align-items: center; gap: 10px; background: ${props => props.$isCorrect ? `${props.$primary}1a` : 'rgba(255,255,255,0.02)'};
+  border: 1px solid ${props => props.$isCorrect ? props.$primary : 'rgba(255,255,255,0.08)'}; padding: 10px 15px; border-radius: 12px; transition: 0.2s;
   .prefix { color: ${props => props.$primary}; font-weight: 900; }
   input[type="text"] { background: transparent; border: none; color: ${props => props.$light}; width: 100%; outline: none; }
   input[type="radio"] { accent-color: ${props => props.$primary}; cursor: pointer; width: 18px; height: 18px; }
 `;
 
 const NavBtn = styled.button`
-  background: transparent; border: 1px solid rgba(255,255,255,0.1); color: #e0f2fe;
-  padding: 8px 16px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 8px;
+  background: transparent; border: 1px solid rgba(255,255,255,0.1); color: #e0f2fe; padding: 8px 16px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 8px;
   &:disabled { opacity: 0.3; cursor: not-allowed; }
-  &:hover:not(:disabled) { background: rgba(255,255,255,0.05); }
 `;
 
-const ActionArea = styled.div`
-  margin-top: 30px; display: flex; gap: 20px;
-`;
+const ActionArea = styled.div` margin-top: 30px; display: flex; gap: 20px; `;
 
 const AddBtn = styled(motion.button)`
   flex: 1; padding: 16px; background: rgba(255,255,255,0.05); border: 1px dashed ${props => props.$primary};
@@ -482,10 +415,6 @@ const AddBtn = styled(motion.button)`
   &:disabled { opacity: 0.5; cursor: not-allowed; }
 `;
 
-const DeleteBtn = styled(motion.button)`
-  position: absolute; top: 20px; right: 20px; background: rgba(255, 75, 75, 0.1);
-  border: none; color: #ff4b4b; padding: 8px; border-radius: 8px; cursor: pointer;
-  &:disabled { opacity: 0.3; cursor: not-allowed; }
-`;
+const DeleteBtn = styled(motion.button)` position: absolute; top: 20px; right: 20px; background: rgba(255, 75, 75, 0.1); border: none; color: #ff4b4b; padding: 8px; border-radius: 8px; cursor: pointer; `;
 
 export default CreatePage;
