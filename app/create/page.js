@@ -10,7 +10,7 @@ const CreatePage = () => {
   const [loading, setLoading] = useState(false);
 
   const [quizInfo, setQuizInfo] = useState({
-    quizId: null, // Start as null to accept JPA ID
+    quizId: null,
     duration: 10,
     email: "",
     quizTitle: "",
@@ -19,7 +19,7 @@ const CreatePage = () => {
 
   const [questions, setQuestions] = useState([
     {
-      quizId: null, // Will be updated after Phase 0
+      quizId: null,
       question: "",
       a: "",
       b: "",
@@ -72,27 +72,16 @@ const CreatePage = () => {
 
       if (response.ok) {
         const savedQuizFromServer = await response.json();
-
-        // Handle both 'quizId' or 'id' depending on JPA naming
-
-        
-        console.log("SUCCESS: Received Quiz ID from JPA:", savedQuizFromServer);
-        //setPhase(1);
-         if (savedQuizFromServer) {
-           // 1. Update Quiz Info
-           setQuizInfo(prev => ({ ...prev, quizId: savedQuizFromServer }));
-           
-           // 2. IMPORTANT: Inject this ID into all existing questions immediately
-           setQuestions(prevQuestions => 
-             prevQuestions.map(q => ({ ...q, quizId: savedQuizFromServer }))
-           );
- 
-           toast.success(`Quiz Registered! ID: ${savedQuizFromServer}`);
-           setPhase(1);
-         } else {
-           console.error("Server responded but no ID found in:", savedQuizFromServer);
-           toast.error("Server didn't return a Quiz ID");
-         }
+        if (savedQuizFromServer) {
+          setQuizInfo(prev => ({ ...prev, quizId: savedQuizFromServer }));
+          setQuestions(prevQuestions => 
+            prevQuestions.map(q => ({ ...q, quizId: savedQuizFromServer }))
+          );
+          toast.success(`Quiz Registered! ID: ${savedQuizFromServer}`);
+          setPhase(1);
+        } else {
+          toast.error("Server didn't return a Quiz ID");
+        }
       } else {
         toast.error(`Backend Error: ${response.status}`);
       }
@@ -106,7 +95,6 @@ const CreatePage = () => {
 
   const handlePublish = async () => {
     setLoading(true);
-    // Use the quizId stored in state
     const payload = questions.map((q) => ({
       quizId: quizInfo.quizId,
       question: q.question,
@@ -116,8 +104,6 @@ const CreatePage = () => {
       opt4: q.d,
       correctOpt: `opt${q.correct.toLowerCase() === 'a' ? '1' : q.correct.toLowerCase() === 'b' ? '2' : q.correct.toLowerCase() === 'c' ? '3' : '4'}`
     }));
-
-    console.log("Publishing Payload with Quiz ID:", quizInfo.quizId, payload);
 
     try {
       const response = await fetch('https://noneditorial-professionally-serena.ngrok-free.dev/Questions', {
@@ -143,7 +129,6 @@ const CreatePage = () => {
   };
 
   const addSlide = () => {
-    // Ensure new slides also carry the correct quizId
     setQuestions([...questions, { quizId: quizInfo.quizId, question: "", a: "", b: "", c: "", d: "", correct: "a" }]);
     setCurrentSlide(questions.length);
     toast.success("New slide added!");
@@ -291,29 +276,50 @@ const CreatePage = () => {
                 </FormGroup>
 
                 <div className="options-grid">
-                  {['a', 'b', 'c', 'd'].map((letter) => (
-                    <OptionInput
-                      key={letter}
-                      $primary={primaryColor}
-                      $light={lightColor}
-                      $isCorrect={questions[currentSlide].correct === letter}
-                    >
-                      <span className="prefix">{letter.toUpperCase()}</span>
-                      <input
-                        disabled={loading}
-                        value={questions[currentSlide][letter]}
-                        onChange={(e) => updateQuestion(letter, e.target.value)}
-                        placeholder={`Option ${letter.toUpperCase()}`}
-                      />
-                      <input
-                        disabled={loading}
-                        type="radio"
-                        name={`correct-ans-${currentSlide}`}
-                        checked={questions[currentSlide].correct === letter}
-                        onChange={() => updateQuestion('correct', letter)}
-                      />
-                    </OptionInput>
-                  ))}
+                  {['a', 'b', 'c', 'd'].map((letter) => {
+                    const currentVal = questions[currentSlide][letter] || "";
+                    const charCount = currentVal.length;
+                    const isOverLimit = charCount >= 255;
+                    
+                    return (
+                      <div key={letter} style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                        <OptionInput
+                          $primary={primaryColor}
+                          $light={lightColor}
+                          $isCorrect={questions[currentSlide].correct === letter}
+                          style={{ borderColor: isOverLimit ? '#ef4444' : '' }}
+                        >
+                          <span className="prefix">{letter.toUpperCase()}</span>
+                          <textarea
+                            disabled={loading}
+                            rows="1"
+                            value={currentVal}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              if (val.length <= 255) {
+                                e.target.style.height = 'auto';
+                                e.target.style.height = e.target.scrollHeight + 'px';
+                                updateQuestion(letter, val);
+                              }
+                            }}
+                            placeholder={`Option ${letter.toUpperCase()}`}
+                          />
+                          <input
+                            disabled={loading}
+                            type="radio"
+                            name={`correct-ans-${currentSlide}`}
+                            checked={questions[currentSlide].correct === letter}
+                            onChange={() => updateQuestion('correct', letter)}
+                          />
+                        </OptionInput>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0 5px' }}>
+                          <span style={{ color: isOverLimit ? '#ef4444' : 'rgba(255,255,255,0.4)', fontSize: '0.7rem' }}>
+                            {isOverLimit ? "Maximum reached" : `${charCount}/255`}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </SlideCard>
 
@@ -339,7 +345,7 @@ const CreatePage = () => {
   );
 };
 
-/* --- STYLES REMAIN SAME --- */
+/* --- STYLES --- */
 const PageWrapper = styled.div`
   min-height: 100vh; padding: 40px 20px; color: white;
   .spinner { animation: spin 1s linear infinite; }
@@ -394,11 +400,14 @@ const FormGroup = styled.div`
 `;
 
 const OptionInput = styled.div`
-  display: flex; align-items: center; gap: 10px; background: ${props => props.$isCorrect ? `${props.$primary}1a` : 'rgba(255,255,255,0.02)'};
+  display: flex; align-items: flex-start; gap: 10px; background: ${props => props.$isCorrect ? `${props.$primary}1a` : 'rgba(255,255,255,0.02)'};
   border: 1px solid ${props => props.$isCorrect ? props.$primary : 'rgba(255,255,255,0.08)'}; padding: 10px 15px; border-radius: 12px; transition: 0.2s;
-  .prefix { color: ${props => props.$primary}; font-weight: 900; }
-  input[type="text"] { background: transparent; border: none; color: ${props => props.$light}; width: 100%; outline: none; }
-  input[type="radio"] { accent-color: ${props => props.$primary}; cursor: pointer; width: 18px; height: 18px; }
+  .prefix { color: ${props => props.$primary}; font-weight: 900; padding-top: 2px; }
+  textarea { 
+    background: transparent; border: none; color: ${props => props.$light}; width: 100%; outline: none; 
+    resize: none; font-family: inherit; font-size: 1rem; padding: 0; line-height: 1.4; min-height: 24px; overflow: hidden;
+  }
+  input[type="radio"] { accent-color: ${props => props.$primary}; cursor: pointer; width: 18px; height: 18px; margin-top: 4px; }
 `;
 
 const NavBtn = styled.button`

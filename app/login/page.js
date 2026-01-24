@@ -4,8 +4,9 @@ import styled from "styled-components";
 import toast, { Toaster } from "react-hot-toast";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { Layout, Mail, Lock, User, LogOut, ArrowRight, CheckCircle } from 'lucide-react';
-
+import { useRouter } from 'next/navigation';
 const Form = () => {
+    const router = useRouter();
     const [isAuth, setIsAuth] = useState(false);
     const [userName, setUserName] = useState("");
     const [isFlipped, setIsFlipped] = useState(false);
@@ -98,7 +99,7 @@ const Form = () => {
             setIsAuth(true);
             setUserName(data.user?.name || "User");
             toast.success("Welcome back!");
-            window.location.href = "/";
+            router.push("/");;
         } catch (err) {
             toast.error(err.message);
         } finally {
@@ -110,7 +111,7 @@ const Form = () => {
         setIsLoggingOut(true);
         localStorage.clear();
         toast.success("Logged out safely");
-        setTimeout(() => (window.location.href = "/"), 800);
+        setTimeout(() => (router.push("/")), 800);
     };
 
     return (
@@ -123,7 +124,7 @@ const Form = () => {
                         <h2>Hello, {userName}!</h2>
                         <div className="status-badge">SESSION ACTIVE</div>
                         <div className="action-area">
-                            <button className="main-btn" onClick={() => window.location.href = '/dashboard'}>
+                            <button className="main-btn" onClick={() =>router.push("/dashboard")}>
                                 <Layout size={18} /> Dashboard
                             </button>
                             <button className="main-btn logout-btn" onClick={handleLogout} disabled={isLoggingOut}>
