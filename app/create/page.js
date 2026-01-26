@@ -94,6 +94,16 @@ const CreatePage = () => {
   };
 
   const handlePublish = async () => {
+    // --- VALIDATION LOGIC ---
+    for (let i = 0; i < questions.length; i++) {
+      const q = questions[i];
+      if (!q.question.trim() || !q.a.trim() || !q.b.trim() || !q.c.trim() || !q.d.trim()) {
+        setCurrentSlide(i); // Move user to the problematic slide
+        toast.error(`Please fill all fields for Question ${i + 1}`);
+        return;
+      }
+    }
+
     setLoading(true);
     const payload = questions.map((q) => ({
       quizId: quizInfo.quizId,
@@ -394,20 +404,59 @@ const SlideCard = styled(motion.div)`
 const FormGroup = styled.div`
   margin-bottom: 20px;
   label { display: flex; align-items: center; gap: 8px; color: ${props => props.$primary}; font-size: 0.85rem; font-weight: bold; text-transform: uppercase; margin-bottom: 10px; }
-  textarea, .clean-input { width: 100%; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; padding: 15px; color: white; font-size: 1.1rem; outline: none; &:focus { border-color: ${props => props.$primary}; background: rgba(0,0,0,0.4); } }
-  textarea { height: 100px; resize: none; }
-  .disabled { opacity: 0.6; cursor: not-allowed; background: rgba(255,255,255,0.02); }
+  
+  textarea, .clean-input { 
+    width: 100%; 
+    background: transparent; 
+    border: none;
+    border-bottom: 1px solid rgba(255,255,255,0.1); 
+    border-radius: 0; 
+    padding: 10px 0; 
+    color: white; 
+    font-size: 1.1rem; 
+    outline: none; 
+    transition: border-color 0.3s ease;
+    
+    &:focus { 
+      border-bottom-color: ${props => props.$primary}; 
+    } 
+  }
+  
+  textarea { height: 60px; resize: none; }
+  .disabled { opacity: 0.6; cursor: not-allowed; border-bottom: 1px dashed rgba(255,255,255,0.2); }
 `;
 
 const OptionInput = styled.div`
-  display: flex; align-items: flex-start; gap: 10px; background: ${props => props.$isCorrect ? `${props.$primary}1a` : 'rgba(255,255,255,0.02)'};
-  border: 1px solid ${props => props.$isCorrect ? props.$primary : 'rgba(255,255,255,0.08)'}; padding: 10px 15px; border-radius: 12px; transition: 0.2s;
+  display: flex; align-items: flex-start; gap: 10px; 
+  background: transparent;
+  border-bottom: 1px solid ${props => props.$isCorrect ? props.$primary : 'rgba(255,255,255,0.08)'}; 
+  padding: 10px 0; 
+  transition: 0.2s;
+  
   .prefix { color: ${props => props.$primary}; font-weight: 900; padding-top: 2px; }
+  
   textarea { 
-    background: transparent; border: none; color: ${props => props.$light}; width: 100%; outline: none; 
-    resize: none; font-family: inherit; font-size: 1rem; padding: 0; line-height: 1.4; min-height: 24px; overflow: hidden;
+    background: transparent; 
+    border: none; 
+    color: ${props => props.$light}; 
+    width: 100%; 
+    outline: none; 
+    resize: none; 
+    font-family: inherit; 
+    font-size: 1rem; 
+    padding: 0; 
+    line-height: 1.4; 
+    min-height: 24px; 
+    overflow: hidden;
   }
-  input[type="radio"] { accent-color: ${props => props.$primary}; cursor: pointer; width: 18px; height: 18px; margin-top: 4px; }
+  
+  input[type="radio"] { 
+    accent-color: ${props => props.$primary}; 
+    cursor: pointer; 
+    width: 18px; 
+    height: 18px; 
+    margin-top: 4px; 
+  }
 `;
 
 const NavBtn = styled.button`
