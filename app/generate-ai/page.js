@@ -28,7 +28,7 @@ const AIGenerator = () => {
         setUserAnswers({});
 
         try {
-            const response = await fetch('quizbyaiservice-production.up.railway.app/Generate', {
+            const response = await fetch('https://quizbyaiservice-production.up.railway.app/Generate', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(formData)
