@@ -18,6 +18,9 @@ const EditQuizModule = ({ quizId, onBack, primaryColor, userEmail }) => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [originalQnos, setOriginalQnos] = useState(new Set());
+  
+  // NEW: Track deleted question numbers locally
+  const [deletedQnos, setDeletedQnos] = useState([]);
 
   useEffect(() => {
     if (!quizId) return;
@@ -39,6 +42,8 @@ const EditQuizModule = ({ quizId, onBack, primaryColor, userEmail }) => {
           const qs = data.questions || [];
           setQuestions(qs);
           setOriginalQnos(new Set(qs.map(q => q.qno)));
+          // Reset deleted tracking on fresh fetch
+          setDeletedQnos([]); 
         } else {
           toast.error("Quiz not found (404)");
         }
@@ -74,25 +79,18 @@ const EditQuizModule = ({ quizId, onBack, primaryColor, userEmail }) => {
     toast.success("New question block added!");
   };
 
-  const handleDeleteQuestion = async (qno, index) => {
+  // UPDATED: No API call here. Just track the ID for deletion later.
+  const handleDeleteQuestion = (qno, index) => {
     if(!window.confirm("Delete this question?")) return;
-    if (questions[index].isLocalOnly || !originalQnos.has(qno)) {
-      setQuestions(questions.filter((_, i) => i !== index));
-      toast.success("Question removed");
-      return;
+
+    // If it was an original question (in DB), add to deletedQnos list
+    if (!questions[index].isLocalOnly && originalQnos.has(qno)) {
+        setDeletedQnos(prev => [...prev, qno]);
     }
-    try {
-      const response = await fetch(`https://noneditorial-professionally-serena.ngrok-free.dev/Logged/DeleteQ/${qno}`, {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' }
-      });
-      if (response.ok) {
-        setQuestions(questions.filter((_, i) => i !== index));
-        toast.success("Question deleted");
-      }
-    } catch (err) {
-      toast.error("Error deleting question");
-    }
+
+    // Update UI immediately
+    setQuestions(questions.filter((_, i) => i !== index));
+    toast.success("Question removed (click Save to apply)");
   };
 
   const handleSave = async () => {
@@ -115,24 +113,29 @@ const EditQuizModule = ({ quizId, onBack, primaryColor, userEmail }) => {
     }
 
     setSaving(true);
+
+    // UPDATED: New Nested Structure
     const payload = { 
       quiz: {
-        quizId: parseInt(quizId),
-        quizTitle: quizInfo.quizTitle,
-        duration: parseInt(quizInfo.duration),
-        status: String(quizInfo.status).toLowerCase() === "true", 
-        createdBy: quizInfo.createdBy || userEmail
-      }, 
-      questions: questions.map(q => ({
-        qno: q.isLocalOnly ? 0 : q.qno,
-        question: q.question, 
-        opt1: q.opt1,
-        opt2: q.opt2,
-        opt3: q.opt3,
-        opt4: q.opt4,
-        correctOpt: q.correctOpt,
-        quizId: parseInt(quizId) 
-      }))
+          quiz: {
+            quizId: parseInt(quizId),
+            quizTitle: quizInfo.quizTitle,
+            duration: parseInt(quizInfo.duration),
+            status: String(quizInfo.status).toLowerCase() === "true", 
+            createdBy: quizInfo.createdBy || userEmail
+          }, 
+          questions: questions.map(q => ({
+            qno: q.isLocalOnly ? 0 : q.qno,
+            question: q.question, 
+            opt1: q.opt1,
+            opt2: q.opt2,
+            opt3: q.opt3,
+            opt4: q.opt4,
+            correctOpt: q.correctOpt,
+            quizId: parseInt(quizId) 
+          }))
+      },
+      questionNos: deletedQnos // Send the array of IDs to delete
     };
 
     try {
@@ -233,7 +236,6 @@ const EditQuizModule = ({ quizId, onBack, primaryColor, userEmail }) => {
     </motion.div>
   );
 };
-
 /* --- 2. PREVIEW COMPONENT --- */
 const FullQuizPreview = ({ quizId, onBack, primaryColor }) => {
   const [questions, setQuestions] = useState([]);
