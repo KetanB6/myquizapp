@@ -544,7 +544,50 @@ const DownloadBtn = styled.button` background: rgba(37, 99, 235, 0.1); border: n
 const ResultIconButton = styled.button` background: rgba(255,255,255,0.05); border: none; color: #f59e0b; padding: 8px; border-radius: 8px; cursor: pointer; &:hover { background: #f59e0b; color: white; } `;
 const QRIconButton = styled.button` background: rgba(255,255,255,0.05); border: none; color: #3b82f6; padding: 8px; border-radius: 8px; cursor: pointer; &:hover { background: #3b82f6; color: white; } `;
 const WhatsAppBtn = styled.button` width: 100%; background: #25d366; color: white; border: none; padding: 12px; border-radius: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 10px; cursor: pointer; transition: transform 0.2s; &:hover { transform: scale(1.02); background: #22c35e; } `;
-const DashboardWrapper = styled.div` max-width: 1200px; margin: 0 auto; padding: 40px 20px; color: #f8fafc; .main-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; h1 { font-size: 1.8rem; font-weight: 800; } .highlight { color: #3b82f6; } @media (max-width: 640px) { flex-direction: column; align-items: flex-start; gap: 20px; h1 { font-size: 1.5rem; } } } .btn-text { @media (max-width: 640px) { display: none; } } `;
+const DashboardWrapper = styled.div`
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 40px 20px;
+  color: #f8fafc;
+
+  .main-header {
+    display: flex;
+    /* Changed: Forced row even on mobile */
+    flex-direction: row; 
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 40px;
+    gap: 15px; /* Added gap for tight screens */
+
+    h1 {
+      font-size: 1.8rem;
+      font-weight: 800;
+    }
+    
+    .highlight {
+      color: #3b82f6;
+    }
+
+    @media (max-width: 640px) {
+      /* Ensuring they stay side-by-side */
+      align-items: center; 
+      
+      h1 {
+        font-size: 1.2rem; /* Scaled down slightly so both fit comfortably */
+      }
+      
+      .user-info p {
+        font-size: 0.8rem; /* Scaled down sub-text */
+      }
+    }
+  }
+
+  .btn-text {
+    @media (max-width: 640px) {
+      display: none; /* Keeps the button compact on mobile by showing only the plus icon */
+    }
+  }
+`;
 const QuizGrid = styled.div` display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; @media (max-width: 640px) { grid-template-columns: 1fr; } `;
 const StyledCard = styled(motion.div)` background: rgba(30, 41, 59, 0.5); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 20px; padding: 20px; backdrop-filter: blur(10px); .card-header { display: flex; justify-content: space-between; margin-bottom: 15px; } .icon-bg { padding: 8px; background: rgba(37, 99, 235, 0.1); border-radius: 10px; } .quiz-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 15px; color: white; } `;
 
