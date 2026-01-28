@@ -4,7 +4,7 @@ import styled, { keyframes } from 'styled-components';
 import { Sparkles, Zap, Globe, Cpu, Loader2, Trophy, RefreshCcw, Timer, ChevronRight } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
 
-const SECONDS_PER_QUESTION = 30; // Global timer setting
+const SECONDS_PER_QUESTION = 59; // Global timer setting
 
 const AIGenerator = () => {
     const [isLoading, setIsLoading] = useState(false);

@@ -74,7 +74,7 @@ const CreatePage = () => {
         const savedQuizFromServer = await response.json();
         if (savedQuizFromServer) {
           setQuizInfo(prev => ({ ...prev, quizId: savedQuizFromServer }));
-          setQuestions(prevQuestions => 
+          setQuestions(prevQuestions =>
             prevQuestions.map(q => ({ ...q, quizId: savedQuizFromServer }))
           );
           toast.success(`Quiz Registered! ID: ${savedQuizFromServer}`);
@@ -214,11 +214,11 @@ const CreatePage = () => {
                 <FormGroup $primary={primaryColor}>
                   <label><Clock size={16} /> Duration (Minutes)</label>
                   <input
-                    type="number"
-                    className="clean-input"
-                    value={quizInfo.duration}
-                    onChange={(e) => handleInfoChange('duration', e.target.value)}
-                    min="1"
+                    type="text" // Changed to text to allow the placeholder message to be clear
+                    className="clean-input disabled"
+                    placeholder="1 min Per Question"
+                    value="" // Keep value empty so placeholder shows
+                    disabled // Prevents user interaction
                   />
                 </FormGroup>
 
@@ -290,7 +290,7 @@ const CreatePage = () => {
                     const currentVal = questions[currentSlide][letter] || "";
                     const charCount = currentVal.length;
                     const isOverLimit = charCount >= 255;
-                    
+
                     return (
                       <div key={letter} style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                         <OptionInput

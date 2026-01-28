@@ -6,29 +6,39 @@ import { useRouter } from 'next/navigation';
 
 const QuickActions = () => {
     const router = useRouter();
-    const actions = [
-        {
-            title: "Play Quiz",
-            desc: "Enter a code and test your knowledge",
-            icon: <Play size={32} />,
-            color: "#6366f1", // Indigo (from your requested gradient start)
-            onClick: () => router.push('/play')
-        },
-        {
-            title: "Create Quiz",
-            desc: "Build your own custom quiz manually",
-            icon: <PlusCircle size={32} />,
-            color: "#2d8cf0", // Blue
-            onClick: () => router.push('/create')
-        },
-        {
-            title: "Quiz by AI",
-            desc: "Generate a quiz from a topic or URL",
-            icon: <Sparkles size={32} />,
-            color: "#9b59b6", // Purple
-            onClick: () => router.push('/generate-ai')
+   // Add this line or use your existing auth logic
+  const isLoggedIn = typeof window !== 'undefined' && !!localStorage.getItem("token"); 
+
+  const actions = [
+    {
+      title: "Play Quiz",
+      desc: "Enter a code and test your knowledge",
+      icon: <Play size={32} />,
+      color: "#6366f1",
+      onClick: () => router.push('/play')
+    },
+    {
+      title: "Create Quiz",
+      desc: "Build your own custom quiz manually",
+      icon: <PlusCircle size={32} />,
+      color: "#2d8cf0",
+      onClick: () => {
+        if (!isLoggedIn) {
+          alert("Please login to create a quiz!");
+           router.push('/login');
+        } else {
+          router.push('/create');
         }
-    ];
+      }
+    },
+    {
+      title: "Quiz by AI",
+      desc: "Generate a quiz from a topic or URL",
+      icon: <Sparkles size={32} />,
+      color: "#9b59b6",
+      onClick: () => router.push('/generate-ai')
+    }
+  ];
 
     return (
         <Container>
