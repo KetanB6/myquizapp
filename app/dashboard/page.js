@@ -2,10 +2,10 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  BookOpen, Clock, AlertCircle, Plus, Loader2, Fingerprint, Eye, 
+import {
+  BookOpen, Clock, AlertCircle, Plus, Loader2, Fingerprint, Eye,
   HelpCircle, ChevronLeft, Edit3, Save, Trash2, Inbox, FileText, X, Trophy, Download,
-  QrCode, Share2 
+  QrCode, Share2, Search
 } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import toast, { Toaster } from 'react-hot-toast';
@@ -29,13 +29,13 @@ const QRModal = ({ quizId, quizTitle, onClose }) => {
           <h3><QrCode size={20} color="#3b82f6" /> Share Quiz</h3>
           <button onClick={onClose}><X size={20} /></button>
         </div>
-        
+
         <div style={{ background: 'white', padding: '20px', borderRadius: '15px', display: 'inline-block', marginBottom: '20px' }}>
           <QRCodeSVG value={quizLink} size={200} level="H" includeMargin={true} />
         </div>
 
         <p style={{ color: '#94a3b8', fontSize: '0.9rem', marginBottom: '10px' }}>
-          Students can scan this to join <b style={{color: 'white'}}>{quizTitle}</b>
+          Students can scan this to join <b style={{ color: 'white' }}>{quizTitle}</b>
         </p>
         <p style={{ color: '#3b82f6', fontSize: '0.8rem', marginBottom: '20px', fontWeight: 'bold' }}>
           Quiz ID: {quizId} (Auto-fills on scan)
@@ -165,7 +165,7 @@ const EditQuizModule = ({ quizId, onBack, primaryColor, userEmail }) => {
           const qs = data.questions || [];
           setQuestions(qs);
           setOriginalQnos(new Set(qs.map(q => q.qno)));
-          setDeletedQnos([]); 
+          setDeletedQnos([]);
         } else {
           toast.error("Quiz not found");
         }
@@ -195,16 +195,16 @@ const EditQuizModule = ({ quizId, onBack, primaryColor, userEmail }) => {
       opt4: "",
       correctOpt: "opt1",
       quizId: parseInt(quizId),
-      isLocalOnly: true 
+      isLocalOnly: true
     };
     setQuestions([...questions, newBlankQuestion]);
     toast.success("New question block added!");
   };
 
   const handleDeleteQuestion = (qno, index) => {
-    if(!window.confirm("Delete this question?")) return;
+    if (!window.confirm("Delete this question?")) return;
     if (!questions[index].isLocalOnly && originalQnos.has(qno)) {
-        setDeletedQnos(prev => [...prev, qno]);
+      setDeletedQnos(prev => [...prev, qno]);
     }
     setQuestions(questions.filter((_, i) => i !== index));
     toast.success("Question removed (click Save to apply)");
@@ -216,37 +216,37 @@ const EditQuizModule = ({ quizId, onBack, primaryColor, userEmail }) => {
       return;
     }
 
-    const firstInvalidIndex = questions.findIndex(q => 
-        !q.question?.trim() || !q.opt1?.trim() || !q.opt2?.trim() || !q.opt3?.trim() || !q.opt4?.trim()
+    const firstInvalidIndex = questions.findIndex(q =>
+      !q.question?.trim() || !q.opt1?.trim() || !q.opt2?.trim() || !q.opt3?.trim() || !q.opt4?.trim()
     );
 
     if (firstInvalidIndex !== -1) {
-        toast.error(`Question ${firstInvalidIndex + 1} has empty fields!`);
-        return;
+      toast.error(`Question ${firstInvalidIndex + 1} has empty fields!`);
+      return;
     }
 
     setSaving(true);
-    const payload = { 
+    const payload = {
       quiz: {
-          quiz: {
-            quizId: parseInt(quizId),
-            quizTitle: quizInfo.quizTitle,
-            duration: parseInt(quizInfo.duration),
-            status: String(quizInfo.status).toLowerCase() === "true", 
-            createdBy: quizInfo.createdBy || userEmail
-          }, 
-          questions: questions.map(q => ({
-            qno: q.isLocalOnly ? 0 : q.qno,
-            question: q.question, 
-            opt1: q.opt1,
-            opt2: q.opt2,
-            opt3: q.opt3,
-            opt4: q.opt4,
-            correctOpt: q.correctOpt,
-            quizId: parseInt(quizId) 
-          }))
+        quiz: {
+          quizId: parseInt(quizId),
+          quizTitle: quizInfo.quizTitle,
+          duration: parseInt(quizInfo.duration),
+          status: String(quizInfo.status).toLowerCase() === "true",
+          createdBy: quizInfo.createdBy || userEmail
+        },
+        questions: questions.map(q => ({
+          qno: q.isLocalOnly ? 0 : q.qno,
+          question: q.question,
+          opt1: q.opt1,
+          opt2: q.opt2,
+          opt3: q.opt3,
+          opt4: q.opt4,
+          correctOpt: q.correctOpt,
+          quizId: parseInt(quizId)
+        }))
       },
-      questionNos: deletedQnos 
+      questionNos: deletedQnos
     };
 
     try {
@@ -257,7 +257,7 @@ const EditQuizModule = ({ quizId, onBack, primaryColor, userEmail }) => {
       });
       if (response.ok) {
         toast.success("Quiz updated successfully!");
-        onBack(); 
+        onBack();
       } else {
         toast.error("Server error. Please check all fields.");
       }
@@ -293,11 +293,11 @@ const EditQuizModule = ({ quizId, onBack, primaryColor, userEmail }) => {
           <div className="form-grid">
             <div className="field">
               <label>Quiz Title</label>
-              <input value={quizInfo?.quizTitle || ''} onChange={(e) => setQuizInfo({...quizInfo, quizTitle: e.target.value})} />
+              <input value={quizInfo?.quizTitle || ''} onChange={(e) => setQuizInfo({ ...quizInfo, quizTitle: e.target.value })} />
             </div>
             <div className="field">
               <label>Duration (min)</label>
-              <input type="number" value={quizInfo?.duration || ''} onChange={(e) => setQuizInfo({...quizInfo, duration: e.target.value})} />
+              <input type="number" value={quizInfo?.duration || ''} onChange={(e) => setQuizInfo({ ...quizInfo, duration: e.target.value })} />
             </div>
           </div>
         </ConfigCard>
@@ -306,13 +306,13 @@ const EditQuizModule = ({ quizId, onBack, primaryColor, userEmail }) => {
           <EmptyState>
             <Inbox size={48} />
             <p>No questions found in this quiz.</p>
-            <AddQuestionBtn onClick={addNewQuestion}><Plus size={18}/> Add your first question</AddQuestionBtn>
+            <AddQuestionBtn onClick={addNewQuestion}><Plus size={18} /> Add your first question</AddQuestionBtn>
           </EmptyState>
         ) : (
           questions.map((q, idx) => (
             <QuestionEditBox key={idx}>
               <div className="q-top">
-                <div style={{display: 'flex', alignItems: 'center', gap: '10px'}}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                   <span>Question {idx + 1}</span>
                   <DeleteSmallBtn onClick={() => handleDeleteQuestion(q.qno, idx)}><Trash2 size={16} /></DeleteSmallBtn>
                 </div>
@@ -323,20 +323,20 @@ const EditQuizModule = ({ quizId, onBack, primaryColor, userEmail }) => {
                   </select>
                 </div>
               </div>
-              <textarea 
-                className="q-input" 
+              <textarea
+                className="q-input"
                 placeholder="Type your question here..."
-                value={q.question} 
-                onChange={(e) => handleQuestionChange(idx, 'question', e.target.value)} 
+                value={q.question}
+                onChange={(e) => handleQuestionChange(idx, 'question', e.target.value)}
               />
               <div className="options-grid-edit">
                 {['opt1', 'opt2', 'opt3', 'opt4'].map((opt, i) => (
                   <div key={opt} className="opt-field">
-                    <span className="opt-label">{String.fromCharCode(65+i)}</span>
-                    <input 
-                      value={q[opt]} 
-                      onChange={(e) => handleQuestionChange(idx, opt, e.target.value)} 
-                      placeholder={`Option ${String.fromCharCode(65+i)}`} 
+                    <span className="opt-label">{String.fromCharCode(65 + i)}</span>
+                    <input
+                      value={q[opt]}
+                      onChange={(e) => handleQuestionChange(idx, opt, e.target.value)}
+                      placeholder={`Option ${String.fromCharCode(65 + i)}`}
                     />
                   </div>
                 ))}
@@ -371,22 +371,22 @@ const FullQuizPreview = ({ quizId, onBack, primaryColor }) => {
         <QuestionsContainer>
           <h2 className="preview-header">Quiz Preview</h2>
           {questions.length === 0 ? (
-             <EmptyState>
-                <Inbox size={48} />
-                <p>No questions added to this quiz yet.</p>
-             </EmptyState>
+            <EmptyState>
+              <Inbox size={48} />
+              <p>No questions added to this quiz yet.</p>
+            </EmptyState>
           ) : (
             questions.map((q, index) => (
-                <FullQuestionItem key={index}>
-                  <div className="q-label"><HelpCircle size={14} /> Question {index + 1}</div>
-                  <p className="q-text">{q.question}</p>
-                  <div className="options-grid">
-                    <span className={q.correctOpt === 'opt1' ? 'correct' : ''}>A: {q.opt1}</span>
-                    <span className={q.correctOpt === 'opt2' ? 'correct' : ''}>B: {q.opt2}</span>
-                    <span className={q.correctOpt === 'opt3' ? 'correct' : ''}>C: {q.opt3}</span>
-                    <span className={q.correctOpt === 'opt4' ? 'correct' : ''}>D: {q.opt4}</span>
-                  </div>
-                </FullQuestionItem>
+              <FullQuestionItem key={index}>
+                <div className="q-label"><HelpCircle size={14} /> Question {index + 1}</div>
+                <p className="q-text">{q.question}</p>
+                <div className="options-grid">
+                  <span className={q.correctOpt === 'opt1' ? 'correct' : ''}>A: {q.opt1}</span>
+                  <span className={q.correctOpt === 'opt2' ? 'correct' : ''}>B: {q.opt2}</span>
+                  <span className={q.correctOpt === 'opt3' ? 'correct' : ''}>C: {q.opt3}</span>
+                  <span className={q.correctOpt === 'opt4' ? 'correct' : ''}>D: {q.opt4}</span>
+                </div>
+              </FullQuestionItem>
             ))
           )}
         </QuestionsContainer>
@@ -394,17 +394,47 @@ const FullQuizPreview = ({ quizId, onBack, primaryColor }) => {
     </motion.div>
   );
 };
+/* --- SEARCH BAR COMPONENT --- */
+const SearchBar = ({ value, onChange, onClear }) => {
+  return (
+    <SearchWrapper>
+      <div className="search-inner">
+        <Search size={20} className="search-icon" />
+        <input
+          type="text"
+          placeholder="Search by quiz title or ID..."
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+        />
+        <AnimatePresence>
+          {value && (
+            <motion.button
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.8 }}
+              onClick={onClear}
+              className="clear-btn"
+            >
+              <X size={16} />
+            </motion.button>
+          )}
+        </AnimatePresence>
+      </div>
+    </SearchWrapper>
+  );
+};
 
 /* --- MAIN DASHBOARD --- */
 const UserDashboard = () => {
+  const [searchTerm, setSearchTerm] = useState("");
   const router = useRouter();
   const [quizzes, setQuizzes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [userEmail, setUserEmail] = useState("");
   const [selectedQuizId, setSelectedQuizId] = useState(null);
   const [editQuizId, setEditQuizId] = useState(null);
-  const [viewResultId, setViewResultId] = useState(null); 
-  const [viewQRId, setViewQRId] = useState(null); 
+  const [viewResultId, setViewResultId] = useState(null);
+  const [viewQRId, setViewQRId] = useState(null);
   const [switchingStatusId, setSwitchingStatusId] = useState(null);
   const primaryColor = "#2563eb";
 
@@ -422,9 +452,9 @@ const UserDashboard = () => {
     setLoading(true);
     try {
       const response = await fetch(`https://noneditorial-professionally-serena.ngrok-free.dev/Logged?email=${email}`, {
-        method: 'GET', 
+        method: 'GET',
         headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
-        cache: 'no-store' 
+        cache: 'no-store'
       });
       if (response.ok) setQuizzes(await response.json());
     } finally { setLoading(false); }
@@ -437,33 +467,33 @@ const UserDashboard = () => {
         method: 'GET',
         headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' }
       });
-  
+
       if (response.ok) {
         // 1. EXTRACT THE INTEGER FROM THE BACKEND RESPONSE
-        const minutes = await response.json(); 
-  
+        const minutes = await response.json();
+
         // 2. Update the UI state (Toggle the active/inactive badge)
-        setQuizzes(prev => prev.map(q => 
-          q.quizId === quizId 
-            ? { ...q, status: String(q.status) === "true" ? "false" : "true" } 
+        setQuizzes(prev => prev.map(q =>
+          q.quizId === quizId
+            ? { ...q, status: String(q.status) === "true" ? "false" : "true" }
             : q
         ));
-  
+
         if (minutes === 0) {
-           toast.success("Quiz Deactivated!");
+          toast.success("Quiz Deactivated!");
         } else if (minutes > 0) {
-           toast.success(`Quiz Activated for ${minutes} Minutes`);
+          toast.success(`Quiz Activated for ${minutes} Minutes`);
         }
       }
     } catch (err) {
       toast.error("Network error");
-    } finally { 
-      setSwitchingStatusId(null); 
+    } finally {
+      setSwitchingStatusId(null);
     }
   };
 
   const handleDeleteQuiz = async (quizId) => {
-    if(!window.confirm("Delete quiz?")) return;
+    if (!window.confirm("Delete quiz?")) return;
     const response = await fetch(`https://noneditorial-professionally-serena.ngrok-free.dev/Logged/Delete/${quizId}`, {
       method: 'DELETE', headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' }
     });
@@ -475,28 +505,28 @@ const UserDashboard = () => {
   return (
     <DashboardWrapper>
       <Toaster position="bottom-right" />
-      
+
       <AnimatePresence>
         {viewResultId && <ResultModal quizId={viewResultId} onClose={() => setViewResultId(null)} />}
         {viewQRId && (
-          <QRModal 
-            quizId={viewQRId} 
-            quizTitle={activeQRQuiz?.quizTitle || "Untitled Quiz"} 
-            onClose={() => setViewQRId(null)} 
+          <QRModal
+            quizId={viewQRId}
+            quizTitle={activeQRQuiz?.quizTitle || "Untitled Quiz"}
+            onClose={() => setViewQRId(null)}
           />
         )}
       </AnimatePresence>
 
       <AnimatePresence mode="wait">
         {editQuizId ? (
-          <EditQuizModule 
-            quizId={editQuizId} 
-            primaryColor={primaryColor} 
+          <EditQuizModule
+            quizId={editQuizId}
+            primaryColor={primaryColor}
             userEmail={userEmail}
-            onBack={() => { 
-                setEditQuizId(null); 
-                setTimeout(() => fetchUserQuizzes(userEmail), 1500);
-            }} 
+            onBack={() => {
+              setEditQuizId(null);
+              setTimeout(() => fetchUserQuizzes(userEmail), 1500);
+            }}
           />
         ) : selectedQuizId ? (
           <FullQuizPreview quizId={selectedQuizId} onBack={() => setSelectedQuizId(null)} primaryColor={primaryColor} />
@@ -511,6 +541,11 @@ const UserDashboard = () => {
                 <Plus size={20} /> <span className="btn-text">New Quiz</span>
               </CreateBtn>
             </header>
+            <SearchBar
+              value={searchTerm}
+              onChange={setSearchTerm}
+              onClear={() => setSearchTerm("")}
+            />
 
             {loading ? <LoadingState><Loader2 className="spinner" size={40} /></LoadingState> : (
               quizzes.length === 0 ? (
@@ -527,7 +562,7 @@ const UserDashboard = () => {
                     <StyledCard key={quiz.quizId}>
                       <div className="card-header">
                         <div className="icon-bg"><BookOpen size={20} color={primaryColor} /></div>
-                        <div style={{display:'flex', gap: '8px', alignItems: 'center'}}>
+                        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                           <StatusBadge onClick={() => handleToggleStatus(quiz.quizId)} $isActive={String(quiz.status) === "true"} disabled={switchingStatusId === quiz.quizId}>
                             {switchingStatusId === quiz.quizId ? <Loader2 size={12} className="spinner" /> : (String(quiz.status) === "true" ? "Active" : "Inactive")}
                           </StatusBadge>
@@ -556,6 +591,64 @@ const UserDashboard = () => {
 };
 
 /* --- STYLES --- */
+const SearchWrapper = styled.div`
+  margin-bottom: 30px;
+  
+  .search-inner {
+    display: flex; 
+    align-items: center; 
+    background: rgba(255, 255, 255, 0.03); 
+    border: 1px solid rgba(255, 255, 255, 0.1); 
+    padding: 6px 18px; 
+    border-radius: 18px; 
+    gap: 12px; 
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+
+    &:focus-within { 
+      border-color: #3b82f6; 
+      background: rgba(30, 41, 59, 0.6); 
+      box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1); 
+    }
+
+    .search-icon { 
+      color: #64748b; 
+    }
+
+    input { 
+      background: transparent; /* No background as requested */
+      border: none; 
+      color: white; 
+      width: 100%; 
+      outline: none; 
+      font-size: 1rem; 
+      padding: 12px 0;
+      
+      &::placeholder {
+        color: #64748b;
+      }
+    }
+
+    .clear-btn {
+      background: rgba(255, 255, 255, 0.1);
+      border: none;
+      color: #94a3b8;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: 0.2s;
+      
+      &:hover {
+        background: #ef4444;
+        color: white;
+      }
+    }
+  }
+`;
 const ModalOverlay = styled(motion.div)` position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 20px; `;
 const ModalContent = styled(motion.div)` background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(255,255,255,0.1); border-radius: 24px; width: 100%; max-width: 600px; padding: 24px; position: relative; backdrop-filter: blur(16px); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; h3 { display: flex; align-items: center; gap: 10px; margin: 0; } button { background: none; border: none; color: #94a3b8; cursor: pointer; } } .loading-center { display: flex; justify-content: center; padding: 40px; .spinner { animation: spin 1s linear infinite; } } .no-data { text-align: center; color: #94a3b8; padding: 20px; } `;
 const ResultTable = styled.table` width: 100%; border-collapse: collapse; margin-top: 10px; th, td { text-align: left; padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); } th { font-size: 0.8rem; color: #94a3b8; text-transform: uppercase; } .score-cell { color: #10b981; font-weight: 700; } `;

@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: "QuizMaster",
+  title: " Quizक्रिडा - Online Quiz Platform",
   description: "This app is used to create and take quizzes online.",
 };
 

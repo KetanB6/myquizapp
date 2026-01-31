@@ -4,7 +4,7 @@ import styled, { keyframes } from 'styled-components';
 import { Zap, Loader2, Trophy, RefreshCcw, User, Hash, Play, CheckCircle2, XCircle, Timer } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
 
-const SECONDS_PER_QUESTION = 60; // Set your desired time here
+const SECONDS_PER_QUESTION = 60; 
 
 const PlayQuiz = () => {
     const [isLoading, setIsLoading] = useState(false);
@@ -13,7 +13,6 @@ const PlayQuiz = () => {
     const [isSubmitted, setIsSubmitted] = useState(false);
     const [score, setScore] = useState(0);
     
-    // --- New State for Step-by-Step Logic ---
     const [currentQuestionIdx, setCurrentQuestionIdx] = useState(0);
     const [timeLeft, setTimeLeft] = useState(SECONDS_PER_QUESTION);
 
@@ -22,19 +21,41 @@ const PlayQuiz = () => {
         quizId: ''
     });
 
-    // --- QR Scanner Auto-fill Logic ---
+    // --- Content Protection & QR Logic ---
     useEffect(() => {
-        // Look for ?id= or ?quizId= in the URL
+        // 1. Prevent Right-Click
+        const handleContextMenu = (e) => e.preventDefault();
+        
+        // 2. Prevent Keyboard Shortcuts (Copy, DevTools, View Source)
+        const handleKeyDown = (e) => {
+            if (
+                e.ctrlKey && (e.key === 'c' || e.key === 'u' || e.key === 's' || e.key === 'p') || 
+                e.key === 'F12' || 
+                (e.ctrlKey && e.shiftKey && e.key === 'I') || 
+                (e.ctrlKey && e.shiftKey && e.key === 'J')
+            ) {
+                e.preventDefault();
+                toast.error("Copying content is disabled for this quiz!");
+                return false;
+            }
+        };
+
+        document.addEventListener('contextmenu', handleContextMenu);
+        document.addEventListener('keydown', handleKeyDown);
+
+        // --- URL Param Logic ---
         const params = new URLSearchParams(window.location.search);
         const idFromUrl = params.get('id') || params.get('quizId');
         
         if (idFromUrl) {
-            setJoinData(prev => ({
-                ...prev,
-                quizId: idFromUrl
-            }));
+            setJoinData(prev => ({ ...prev, quizId: idFromUrl }));
             toast.success("Quiz ID captured from link!");
         }
+
+        return () => {
+            document.removeEventListener('contextmenu', handleContextMenu);
+            document.removeEventListener('keydown', handleKeyDown);
+        };
     }, []);
 
     // --- Timer Logic ---
@@ -63,8 +84,6 @@ const PlayQuiz = () => {
             setTimeLeft(SECONDS_PER_QUESTION);
         }
     };
-
-    // --- Core Logic Functions ---
 
     const handleJoinQuiz = async () => {
         if (!joinData.participantName || !joinData.quizId) {
@@ -95,7 +114,7 @@ const PlayQuiz = () => {
             }
 
             setQuizData(data);
-            setTimeLeft(SECONDS_PER_QUESTION); // Start timer
+            setTimeLeft(SECONDS_PER_QUESTION); 
             toast.success(`Joined: ${data.quiz.quizTitle}`);
         } catch (error) {
             console.error("Fetch Error:", error);
@@ -158,7 +177,7 @@ const PlayQuiz = () => {
     };
 
     return (
-        <PageContainer>
+        <PageContainer style={{ userSelect: 'none', WebkitUserSelect: 'none' }}>
             <Toaster position="top-center" />
             
             {!quizData ? (
@@ -278,7 +297,7 @@ const PlayQuiz = () => {
     );
 };
 
-// --- Styles remain exactly as you provided ---
+// --- Styled Components ---
 const TimerBarContainer = styled.div`
     width: 100%;
     height: 6px;
@@ -299,7 +318,7 @@ const spin = keyframes` from { transform: rotate(0deg); } to { transform: rotate
 const springUp = keyframes` from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } `;
 
 const PageContainer = styled.div`
-    min-height: 100vh; 
+    min-height: 80vh; 
     padding: 40px 15px; 
     display: flex; 
     justify-content: center;

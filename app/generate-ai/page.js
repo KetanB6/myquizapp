@@ -4,7 +4,7 @@ import styled, { keyframes } from 'styled-components';
 import { Sparkles, Zap, Globe, Cpu, Loader2, Trophy, RefreshCcw, Timer, ChevronRight } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
 
-const SECONDS_PER_QUESTION = 59; // Global timer setting
+const SECONDS_PER_QUESTION = 60; // Global timer setting
 
 const AIGenerator = () => {
     const [isLoading, setIsLoading] = useState(false);
@@ -13,15 +13,15 @@ const AIGenerator = () => {
     const [isSubmitted, setIsSubmitted] = useState(false);
     const [score, setScore] = useState(0);
 
-    // --- New State for Step-by-Step Logic ---
+    // --- State for Step-by-Step Logic ---
     const [currentQuestionIdx, setCurrentQuestionIdx] = useState(0);
     const [timeLeft, setTimeLeft] = useState(SECONDS_PER_QUESTION);
 
     const [formData, setFormData] = useState({
         topic: '',
         count: 10,
-        difficulty: 'moderate',
-        language: 'english'
+        difficulty: 'Moderate',
+        language: 'English'
     });
 
     // --- Timer Logic ---
@@ -48,14 +48,13 @@ const AIGenerator = () => {
         } else {
             setCurrentQuestionIdx(prev => prev + 1);
             setTimeLeft(SECONDS_PER_QUESTION);
-            // Optional: Smooth scroll to top when question changes
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
     };
 
     const handleGenerate = async () => {
         if (!formData.topic) {
-            toast.error("Please enter a topic first!");
+            toast.error("Please Enter A Topic First!");
             return;
         }
         setIsLoading(true);
@@ -74,10 +73,10 @@ const AIGenerator = () => {
 
             const data = await response.json();
             setQuizData(data);
-            setTimeLeft(SECONDS_PER_QUESTION); // Start timer for first question
-            toast.success("Quiz generated successfully!");
+            setTimeLeft(SECONDS_PER_QUESTION); 
+            toast.success("Quiz Generated Successfully!");
         } catch (error) {
-            toast.error(`Failed to generate: ${error.message}`);
+            toast.error(`Failed To Generate: ${error.message}`);
         } finally {
             setIsLoading(false);
         }
@@ -112,9 +111,9 @@ const AIGenerator = () => {
                 <GlassCard>
                     <Header>
                         <div className="icon-badge"><Cpu size={24} /></div>
-                        <div>
+                        <div className="text-wrapper">
                             <h2>AI Quiz Architect</h2>
-                            <p>Define parameters. Generate intelligence.</p>
+                            <p>Define Parameters. Generate Intelligence.</p>
                         </div>
                     </Header>
 
@@ -132,7 +131,7 @@ const AIGenerator = () => {
                         <InputGroup>
                             <label><Zap size={14} /> Difficulty</label>
                             <div className="pill-container">
-                                {['easy', 'moderate', 'hard'].map((level) => (
+                                {['Easy', 'Moderate', 'Hard'].map((level) => (
                                     <Pill
                                         key={level}
                                         $active={formData.difficulty === level}
@@ -147,7 +146,7 @@ const AIGenerator = () => {
                         <InputGroup>
                             <label><Globe size={14} /> Language</label>
                             <div className="pill-container">
-                                {['english', 'hindi', 'marathi'].map((lang) => (
+                                {['English', 'Hindi', 'Marathi'].map((lang) => (
                                     <Pill
                                         key={lang}
                                         $active={formData.language === lang}
@@ -193,12 +192,11 @@ const AIGenerator = () => {
 
                     <QuestionGrid>
                         {quizData.map((q, idx) => {
-                            // Only show current question if playing, OR show all if submitted
                             if (!isSubmitted && idx !== currentQuestionIdx) return null;
 
                             return (
                                 <QuestionCard key={idx}>
-                                    <div className="q-num">Question {idx + 1} of {quizData.length}</div>
+                                    <div className="q-num">Question {idx + 1} Of {quizData.length}</div>
                                     <h3>{q.question}</h3>
                                     <div className="options-list">
                                         {[q.opt1, q.opt2, q.opt3, q.opt4].map((opt, i) => {
@@ -246,10 +244,10 @@ const AIGenerator = () => {
     );
 };
 
-// --- New Timer Components ---
+// --- Styled Components ---
 const TimerBarContainer = styled.div`
     width: 100%; max-width: 800px; margin: 0 auto 20px;
-    height: 6px; background: rgba(255, 255, 255, 0.1);
+    height: 6px; 
     border-radius: 10px; overflow: hidden;
 `;
 
@@ -259,13 +257,13 @@ const TimerBarFill = styled.div`
     transition: width 1s linear;
 `;
 
-// --- Animations & Styled Components (Keep your existing styles) ---
 const float = keyframes` 0%, 100% { transform: translate(0, 0); } 33% { transform: translate(30px, -50px); } 66% { transform: translate(-20px, 20px); } `;
 const spin = keyframes` from { transform: rotate(0deg); } to { transform: rotate(360deg); } `;
 const springUp = keyframes` from { opacity: 0; transform: translateY(40px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } `;
 
 const PageContainer = styled.div`
-    min-height: 100vh; padding: 40px 16px; display: flex; justify-content: center;
+margin-top:-40px;
+    min-height: 80vh; padding: 40px 16px; display: flex; justify-content: center;
     color: #e2e2e2; font-family: 'Inter', sans-serif; overflow-x: hidden; position: relative; 
     .orb { position: fixed; width: 300px; height: 300px; border-radius: 50%; filter: blur(80px); z-index: 0; opacity: 0.12; animation: ${float} 20s infinite linear; }
     .orb-1 { background: #9b59b6; top: -100px; left: -100px; }
@@ -279,9 +277,10 @@ const GlassCard = styled.div`
 `;
 
 const Header = styled.div`
-    display: flex; gap: 16px; margin-bottom: 32px;
+    display: flex; flex-direction: column; align-items: center; gap: 16px; margin-bottom: 32px; text-align: center;
     .icon-badge { width: 48px; height: 48px; background: rgba(155, 89, 182, 0.2); border-radius: 14px; display: flex; align-items: center; justify-content: center; color: #bf81da; }
-    h2 { margin: 0; font-size: 1.4rem; color: #fff; }
+    .text-wrapper { display: flex; flex-direction: column; align-items: center; }
+    h2 { margin: 0; font-size: 1.4rem; color: #fff; text-transform: capitalize; }
     p { margin: 4px 0 0; color: #888; font-size: 0.85rem; }
 `;
 
@@ -289,13 +288,13 @@ const FormGrid = styled.div` display: flex; flex-direction: column; gap: 24px; `
 
 const InputGroup = styled.div`
     display: flex; flex-direction: column; gap: 10px;
-    label { color: #aaa; font-size: 0.75rem; text-transform: uppercase; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+    label { color: #aaa; font-size: 0.75rem; text-transform: capitalize; font-weight: 600; display: flex; align-items: center; gap: 8px; }
     input { background: rgba(0, 0, 0, 0.4); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 14px; color: #fff; font-size: 1rem; width: 100%; }
     .pill-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); gap: 8px; }
 `;
 
 const Pill = styled.button`
-    padding: 10px; border-radius: 10px; cursor: pointer; font-size: 0.85rem; transition: 0.3s;
+    padding: 10px; border-radius: 10px; cursor: pointer; font-size: 0.85rem; transition: 0.3s; text-transform: capitalize;
     background: ${props => props.$active ? 'rgba(155, 89, 182, 0.25)' : 'rgba(255, 255, 255, 0.03)'};
     border: 1px solid ${props => props.$active ? '#9b59b6' : 'rgba(255, 255, 255, 0.08)'};
     color: ${props => props.$active ? '#fff' : '#777'};
@@ -331,7 +330,7 @@ const QuestionGrid = styled.div`
 const QuestionCard = styled.div`
     background: rgba(20, 20, 20, 0.6); border: 1px solid rgba(255, 255, 255, 0.05); padding: 24px; border-radius: 24px;
     animation: ${springUp} 0.5s ease forwards;
-    .q-num { color: #9b59b6; font-size: 0.75rem; font-weight: 800; text-transform: uppercase; margin-bottom: 12px; }
+    .q-num { color: #9b59b6; font-size: 0.75rem; font-weight: 800; text-transform: capitalize; margin-bottom: 12px; }
     h3 { font-size: 1.2rem; margin-bottom: 25px; color: #fff; line-height: 1.5; }
     .options-list { display: flex; flex-direction: column; gap: 10px; }
     

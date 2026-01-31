@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Trash2, ChevronLeft, ChevronRight, Save, Layout, Clock, Mail, CheckCircle, ArrowRight, Loader2 } from 'lucide-react';
+import { Plus, Trash2, ChevronLeft, ChevronRight, Save, Layout, Clock, Mail, CheckCircle, ArrowRight, Loader2, Wand2, PencilRuler} from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
 
 const CreatePage = () => {
@@ -30,8 +30,8 @@ const CreatePage = () => {
   ]);
   const [currentSlide, setCurrentSlide] = useState(0);
 
-  const primaryColor = "#2563eb";
-  const lightColor = "#e0f2fe";
+  const primaryColor = "#3b82f6";
+  const accentGradient = "linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)";
 
   useEffect(() => {
     const userData = localStorage.getItem("user");
@@ -94,11 +94,10 @@ const CreatePage = () => {
   };
 
   const handlePublish = async () => {
-    // --- VALIDATION LOGIC ---
     for (let i = 0; i < questions.length; i++) {
       const q = questions[i];
       if (!q.question.trim() || !q.a.trim() || !q.b.trim() || !q.c.trim() || !q.d.trim()) {
-        setCurrentSlide(i); // Move user to the problematic slide
+        setCurrentSlide(i);
         toast.error(`Please fill all fields for Question ${i + 1}`);
         return;
       }
@@ -162,7 +161,7 @@ const CreatePage = () => {
 
   return (
     <PageWrapper $primary={primaryColor}>
-      <Toaster position="top-center" reverseOrder={false} />
+      <Toaster position="top-center" />
 
       <ContentHeader
         initial={{ opacity: 0, y: -20 }}
@@ -170,21 +169,27 @@ const CreatePage = () => {
         $primary={primaryColor}
       >
         <div className="header-content">
-          <h2>{phase === 0 ? "Step 1: Quiz Details" : `Step 2: Add Questions`}</h2>
+          <div className="icon-badge"><PencilRuler size={20} /></div>
+          <h2>{phase === 0 ? "Create New Quiz" : `Add Quiz Content`}</h2>
           {phase === 1 && (
             <div className="mini-badge">
-              <span>ID: {quizInfo.quizId}</span>
-              <span className="dot">•</span>
-              <span>{quizInfo.quizTitle}</span>
+              <span className="id-tag">ID: {quizInfo.quizId}</span>
+              <span className="title-tag">{quizInfo.quizTitle}</span>
             </div>
           )}
         </div>
 
         {phase === 1 && (
-          <div className="progress-container">
-            <div className="progress-text">Question {currentSlide + 1} of {questions.length}</div>
+          <div className="progress-section">
+            <div className="progress-stats">
+               Question <span>{currentSlide + 1}</span> of {questions.length}
+            </div>
             <ProgressBar $primary={primaryColor}>
-              <div className="fill" style={{ width: `${((currentSlide + 1) / questions.length) * 100}%` }} />
+              <motion.div 
+                className="fill" 
+                initial={{ width: 0 }}
+                animate={{ width: `${((currentSlide + 1) / questions.length) * 100}%` }} 
+              />
             </ProgressBar>
           </div>
         )}
@@ -195,138 +200,136 @@ const CreatePage = () => {
           {phase === 0 && (
             <SlideCard
               key="info-card"
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 1.05 }}
             >
-              <FormGroup $primary={primaryColor}>
-                <label><Layout size={16} /> Quiz Title</label>
-                <input
-                  type="text"
-                  className="clean-input"
-                  placeholder="e.g. Java Fundamentals 101"
-                  value={quizInfo.quizTitle}
-                  onChange={(e) => handleInfoChange('quizTitle', e.target.value)}
-                />
-              </FormGroup>
-
-              <div className="grid-2">
+              <div className="card-inner">
                 <FormGroup $primary={primaryColor}>
-                  <label><Clock size={16} /> Duration (Minutes)</label>
+                  <label><Layout size={14} /> Quiz Title</label>
                   <input
-                    type="text" // Changed to text to allow the placeholder message to be clear
-                    className="clean-input disabled"
-                    placeholder="1 min Per Question"
-                    value="" // Keep value empty so placeholder shows
-                    disabled // Prevents user interaction
+                    type="text"
+                    className="modern-input"
+                    placeholder="Enter an engaging title..."
+                    value={quizInfo.quizTitle}
+                    onChange={(e) => handleInfoChange('quizTitle', e.target.value)}
                   />
                 </FormGroup>
 
-                <FormGroup $primary={primaryColor}>
-                  <label><Mail size={16} /> Created By</label>
-                  <input
-                    type="email"
-                    className="clean-input disabled"
-                    value={quizInfo.email}
-                    readOnly
-                    disabled
-                  />
-                </FormGroup>
+                <div className="grid-2">
+                  <FormGroup $primary={primaryColor}>
+                    <label><Clock size={14} /> Duration</label>
+                    <input
+                      type="text"
+                      className="modern-input disabled"
+                      // placeholder="1 Min / Question"
+                      value="1  Min / Question"
+                      disabled
+                    />
+                  </FormGroup>
+
+                  <FormGroup $primary={primaryColor}>
+                    <label><Mail size={14} /> Author</label>
+                    <input
+                      type="email"
+                      className="modern-input disabled"
+                      value={quizInfo.email}
+                      disabled
+                    />
+                  </FormGroup>
+                </div>
+
+                <ActionArea>
+                  <PrimaryBtn
+                    $primary={primaryColor}
+                    $gradient={accentGradient}
+                    onClick={validateAndProceed}
+                    disabled={loading}
+                    whileHover={{ y: -2 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    {loading ? <Loader2 className="spinner" size={20} /> : <>Continue <ArrowRight size={20} /></>}
+                  </PrimaryBtn>
+                </ActionArea>
               </div>
-
-              <ActionArea>
-                <SaveBtn
-                  $primary={primaryColor}
-                  onClick={validateAndProceed}
-                  disabled={loading}
-                  whileHover={loading ? {} : { scale: 1.02 }}
-                  whileTap={loading ? {} : { scale: 0.98 }}
-                >
-                  {loading ? <><Loader2 className="spinner" size={20} /> Saving...</> : <>Next Step <ArrowRight size={20} /></>}
-                </SaveBtn>
-              </ActionArea>
             </SlideCard>
           )}
 
           {phase === 1 && (
             <div key="questions-wrapper">
-              <div className="nav-controls">
-                <NavBtn onClick={() => setPhase(0)} disabled={loading}>
-                  <ChevronLeft /> Edit Info
+              <NavHeader>
+                <NavBtn onClick={() => setPhase(0)} disabled={loading} className="back-btn">
+                  <ChevronLeft size={18} /> Back
                 </NavBtn>
 
-                <div className="internal-nav">
+                <div className="step-nav">
                   <NavBtn onClick={() => setCurrentSlide(Math.max(0, currentSlide - 1))} disabled={currentSlide === 0 || loading}>
-                    <ChevronLeft /> Prev
+                    <ChevronLeft size={18} />
                   </NavBtn>
+                  <span className="slide-counter">{currentSlide + 1}</span>
                   <NavBtn onClick={() => setCurrentSlide(Math.min(questions.length - 1, currentSlide + 1))} disabled={currentSlide === questions.length - 1 || loading}>
-                    Next <ChevronRight />
+                    <ChevronRight size={18} />
                   </NavBtn>
                 </div>
-              </div>
+              </NavHeader>
 
               <SlideCard
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
-                transition={{ duration: 0.3 }}
               >
-                <DeleteBtn onClick={() => removeSlide(currentSlide)} disabled={loading}>
+                <DeleteBtn 
+                  onClick={() => removeSlide(currentSlide)} 
+                  disabled={loading}
+                  whileHover={{ scale: 1.1 }}
+                >
                   <Trash2 size={18} />
                 </DeleteBtn>
 
                 <FormGroup $primary={primaryColor}>
-                  <label>Question {currentSlide + 1} (Quiz ID: {quizInfo.quizId})</label>
+                  <label>Question Content</label>
                   <textarea
+                    className="modern-textarea"
                     disabled={loading}
                     value={questions[currentSlide].question}
                     onChange={(e) => updateQuestion('question', e.target.value)}
-                    placeholder="Type your question here..."
+                    placeholder="Ask something interesting..."
                   />
                 </FormGroup>
 
                 <div className="options-grid">
                   {['a', 'b', 'c', 'd'].map((letter) => {
                     const currentVal = questions[currentSlide][letter] || "";
-                    const charCount = currentVal.length;
-                    const isOverLimit = charCount >= 255;
+                    const isSelected = questions[currentSlide].correct === letter;
 
                     return (
-                      <div key={letter} style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                        <OptionInput
+                      <div key={letter} className="option-wrapper">
+                        <ModernOption 
                           $primary={primaryColor}
-                          $light={lightColor}
-                          $isCorrect={questions[currentSlide].correct === letter}
-                          style={{ borderColor: isOverLimit ? '#ef4444' : '' }}
+                          $isSelected={isSelected}
                         >
-                          <span className="prefix">{letter.toUpperCase()}</span>
+                          <div className="option-label">{letter.toUpperCase()}</div>
                           <textarea
                             disabled={loading}
                             rows="1"
                             value={currentVal}
                             onChange={(e) => {
-                              const val = e.target.value;
-                              if (val.length <= 255) {
+                              if (e.target.value.length <= 255) {
                                 e.target.style.height = 'auto';
                                 e.target.style.height = e.target.scrollHeight + 'px';
-                                updateQuestion(letter, val);
+                                updateQuestion(letter, e.target.value);
                               }
                             }}
-                            placeholder={`Option ${letter.toUpperCase()}`}
+                            placeholder="Option text..."
                           />
                           <input
-                            disabled={loading}
                             type="radio"
-                            name={`correct-ans-${currentSlide}`}
-                            checked={questions[currentSlide].correct === letter}
+                            name={`correct-${currentSlide}`}
+                            checked={isSelected}
                             onChange={() => updateQuestion('correct', letter)}
                           />
-                        </OptionInput>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0 5px' }}>
-                          <span style={{ color: isOverLimit ? '#ef4444' : 'rgba(255,255,255,0.4)', fontSize: '0.7rem' }}>
-                            {isOverLimit ? "Maximum reached" : `${charCount}/255`}
-                          </span>
-                        </div>
+                        </ModernOption>
+                        <div className="char-limit">{currentVal.length}/255</div>
                       </div>
                     );
                   })}
@@ -334,18 +337,18 @@ const CreatePage = () => {
               </SlideCard>
 
               <ActionArea>
-                <AddBtn $primary={primaryColor} onClick={addSlide} disabled={loading}>
-                  <Plus size={20} /> Add Question
-                </AddBtn>
-                <SaveBtn
+                <SecondaryBtn $primary={primaryColor} onClick={addSlide} disabled={loading}>
+                  <Plus size={20} /> Add Slide
+                </SecondaryBtn>
+                <PrimaryBtn
                   $primary={primaryColor}
+                  $gradient={accentGradient}
                   onClick={handlePublish}
                   disabled={loading}
-                  whileHover={loading ? {} : { scale: 1.02 }}
-                  whileTap={loading ? {} : { scale: 0.98 }}
+                  whileHover={{ y: -2 }}
                 >
-                  {loading ? <><Loader2 className="spinner" size={20} /> Publishing...</> : <><Save size={20} /> Publish Quiz</>}
-                </SaveBtn>
+                  {loading ? <Loader2 className="spinner" size={20} /> : <><Save size={20} /> Finish & Publish</>}
+                </PrimaryBtn>
               </ActionArea>
             </div>
           )}
@@ -355,124 +358,149 @@ const CreatePage = () => {
   );
 };
 
-/* --- STYLES --- */
+/* --- MODERN STYLES --- */
 const PageWrapper = styled.div`
-  min-height: 100vh; padding: 40px 20px; color: white;
+  min-height: 80vh;
+  padding: 60px 20px;
+ margin-top: -60px;
+  color: white;
+  font-family: 'Inter', sans-serif;
   .spinner { animation: spin 1s linear infinite; }
   @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 `;
 
-const SaveBtn = styled(motion.button)`
-  flex: 1; padding: 16px; background: ${props => props.$primary}; border: none;
-  color: white; border-radius: 12px; cursor: pointer; font-weight: bold;
-  display: flex; align-items: center; justify-content: center; gap: 10px;
-  box-shadow: 0 10px 20px ${props => props.$primary}4d;
-  &:disabled { opacity: 0.6; cursor: not-allowed; }
-`;
-
 const ContentHeader = styled(motion.div)`
-  max-width: 800px; margin: 0 auto 40px;
-  .header-content { text-align: center; margin-bottom: 20px; }
-  h2 { font-size: 1.8rem; margin-bottom: 10px; color: ${props => props.$primary}; }
-  .mini-badge {
-    display: inline-flex; gap: 10px; align-items: center;
-    background: rgba(255,255,255,0.1); padding: 5px 15px; border-radius: 20px; font-size: 0.9rem;
-    .dot { color: ${props => props.$primary}; }
+  max-width: 700px;
+  margin: 0 auto 30px;
+  text-align: center;
+
+  .icon-badge {
+    width: 42px; height: 42px; background: rgba(59, 130, 246, 0.1);
+    border-radius: 12px; display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 15px; color: ${props => props.$primary};
+    border: 1px solid rgba(59, 130, 246, 0.2);
   }
-  .progress-text { font-size: 0.8rem; color: #e0f2fe; margin-bottom: 8px; text-align: center; }
+
+  h2 { font-size: 2rem; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 12px; }
+
+  .mini-badge {
+    display: flex; gap: 8px; justify-content: center;
+    .id-tag { background: #3b82f6; color: white; padding: 4px 12px; border-radius: 6px; font-weight: 700; font-size: 0.75rem; }
+    .title-tag { background: rgba(255,255,255,0.05); padding: 4px 12px; border-radius: 6px; font-size: 0.75rem; color: #94a3b8; }
+  }
+
+  .progress-section {
+    margin-top: 30px;
+    .progress-stats { font-size: 0.85rem; color: #94a3b8; margin-bottom: 10px; span { color: white; font-weight: 700; } }
+  }
 `;
 
 const ProgressBar = styled.div`
-  width: 100%; height: 6px; background: rgba(255,255,255,0.05); border-radius: 10px; overflow: hidden;
-  .fill { height: 100%; background: ${props => props.$primary}; transition: 0.5s ease; box-shadow: 0 0 10px ${props => props.$primary}; }
+  width: 100%; height: 8px; background: rgba(255,255,255,0.05); border-radius: 20px; overflow: hidden;
+  .fill { height: 100%; background: ${props => props.$primary}; border-radius: 20px; box-shadow: 0 0 15px rgba(59, 130, 246, 0.5); }
 `;
 
-const MainContainer = styled.div`
-  max-width: 800px; margin: 0 auto;
-  .nav-controls { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-  .internal-nav { display: flex; gap: 10px; }
+const MainContainer = styled.div` max-width: 740px; margin: 0 auto; `;
+
+const NavHeader = styled.div`
+  display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;
+  .step-nav { display: flex; align-items: center; gap: 15px; background: rgba(255,255,255,0.03); padding: 5px; border-radius: 12px; }
+  .slide-counter { font-weight: 800; font-size: 0.9rem; color: #3b82f6; width: 20px; text-align: center; }
 `;
 
 const SlideCard = styled(motion.div)`
-  background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 20px; padding: 40px; position: relative; box-shadow: 0 20px 50px rgba(0,0,0,0.3);
-  .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 30px; }
+ 
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 24px;
+  padding: 40px;
+  position: relative;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+
+  .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 25px; }
   .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-  @media (max-width: 600px) { .options-grid, .grid-2 { grid-template-columns: 1fr; } }
+  
+  @media (max-width: 650px) { 
+    padding: 25px;
+    .options-grid, .grid-2 { grid-template-columns: 1fr; } 
+  }
 `;
 
 const FormGroup = styled.div`
-  margin-bottom: 20px;
-  label { display: flex; align-items: center; gap: 8px; color: ${props => props.$primary}; font-size: 0.85rem; font-weight: bold; text-transform: uppercase; margin-bottom: 10px; }
+  margin-bottom: 25px;
+  label { display: flex; align-items: center; gap: 8px; color: #94a3b8; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 10px; }
   
-  textarea, .clean-input { 
-    width: 100%; 
-    background: transparent; 
-    border: none;
-    border-bottom: 1px solid rgba(255,255,255,0.1); 
-    border-radius: 0; 
-    padding: 10px 0; 
-    color: white; 
-    font-size: 1.1rem; 
-    outline: none; 
-    transition: border-color 0.3s ease;
-    
-    &:focus { 
-      border-bottom-color: ${props => props.$primary}; 
-    } 
+  .modern-input, .modern-textarea {
+    width: 100%; background: rgba(15, 23, 42, 0.4); border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 12px; padding: 14px 18px; color: white; font-size: 1rem; transition: 0.2s;
+    &::placeholder { color: #475569; }
+    &:focus { outline: none; border-color: #3b82f6; background: rgba(15, 23, 42, 0.6); box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1); }
   }
-  
-  textarea { height: 60px; resize: none; }
-  .disabled { opacity: 0.6; cursor: not-allowed; border-bottom: 1px dashed rgba(255,255,255,0.2); }
+
+  .modern-textarea { min-height: 100px; resize: none; line-height: 1.6; }
+  .disabled { opacity: 0.5; cursor: not-allowed; background: rgba(255,255,255,0.02); }
 `;
 
-const OptionInput = styled.div`
-  display: flex; align-items: flex-start; gap: 10px; 
-  background: transparent;
-  border-bottom: 1px solid ${props => props.$isCorrect ? props.$primary : 'rgba(255,255,255,0.08)'}; 
-  padding: 10px 0; 
+const ModernOption = styled.div`
+  display: flex; align-items: center; gap: 12px;
+  background: ${props => props.$isSelected ? 'rgba(59, 130, 246, 0.1)' : 'rgba(15, 23, 42, 0.4)'};
+  border: 1px solid ${props => props.$isSelected ? props.$primary : 'rgba(255,255,255,0.1)'};
+  border-radius: 12px; padding: 12px 16px; transition: 0.2s;
+
+  .option-label { color: ${props => props.$primary}; font-weight: 800; font-size: 0.85rem; }
+  
+  textarea {
+    flex: 1; background: transparent; border: none; color: white;
+    resize: none; outline: none; font-size: 0.9rem; line-height: 1.4;
+    &::placeholder { color: #475569; }
+  }
+
+  input[type="radio"] { accent-color: #3b82f6; cursor: pointer; transform: scale(1.2); }
+`;
+
+const ActionArea = styled.div` margin-top: 25px; display: flex; gap: 15px; `;
+
+const PrimaryBtn = styled(motion.button)`
+  flex: 1.5; padding: 16px; background: ${props => props.$gradient}; border: none;
+  color: white; border-radius: 14px; cursor: pointer; font-weight: 800;
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  box-shadow: 0 10px 25px -5px rgba(37, 99, 235, 0.4);
+  &:disabled { opacity: 0.5; }
+`;
+
+const SecondaryBtn = styled.button`
+  flex: 1; padding: 16px; background: rgba(255,255,255,0.03); border: 1px dashed rgba(255,255,255,0.2);
+  color: #94a3b8; border-radius: 14px; cursor: pointer; font-weight: 700;
+  display: flex; align-items: center; justify-content: center; gap: 10px;
   transition: 0.2s;
-  
-  .prefix { color: ${props => props.$primary}; font-weight: 900; padding-top: 2px; }
-  
-  textarea { 
-    background: transparent; 
-    border: none; 
-    color: ${props => props.$light}; 
-    width: 100%; 
-    outline: none; 
-    resize: none; 
-    font-family: inherit; 
-    font-size: 1rem; 
-    padding: 0; 
-    line-height: 1.4; 
-    min-height: 24px; 
-    overflow: hidden;
-  }
-  
-  input[type="radio"] { 
-    accent-color: ${props => props.$primary}; 
-    cursor: pointer; 
-    width: 18px; 
-    height: 18px; 
-    margin-top: 4px; 
-  }
+  &:hover { background: rgba(255,255,255,0.06); border-color: #3b82f6; color: white; }
 `;
 
 const NavBtn = styled.button`
-  background: transparent; border: 1px solid rgba(255,255,255,0.1); color: #e0f2fe; padding: 8px 16px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 8px;
-  &:disabled { opacity: 0.3; cursor: not-allowed; }
+  background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); 
+  color: #94a3b8; width: 40px; height: 40px; border-radius: 10px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: 0.2s;
+  &:hover:not(:disabled) { background: rgba(255,255,255,0.08); color: white; }
+  &:disabled { opacity: 0.2; cursor: not-allowed; }
+  &.back-btn { width: auto; padding: 0 15px; font-size: 0.85rem; font-weight: 600; }
 `;
 
-const ActionArea = styled.div` margin-top: 30px; display: flex; gap: 20px; `;
-
-const AddBtn = styled(motion.button)`
-  flex: 1; padding: 16px; background: rgba(255,255,255,0.05); border: 1px dashed ${props => props.$primary};
-  color: ${props => props.$primary}; border-radius: 12px; cursor: pointer; font-weight: bold;
-  display: flex; align-items: center; justify-content: center; gap: 10px;
-  &:disabled { opacity: 0.5; cursor: not-allowed; }
+const DeleteBtn = styled(motion.button)`
+  position: absolute; top: -10px; right: -10px;
+  background: #ef4444; border: none; color: white;
+  width: 32px; height: 32px; border-radius: 10px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
 `;
 
-const DeleteBtn = styled(motion.button)` position: absolute; top: 20px; right: 20px; background: rgba(255, 75, 75, 0.1); border: none; color: #ff4b4b; padding: 8px; border-radius: 8px; cursor: pointer; `;
+const charLimitStyle = {
+  fontSize: '0.65rem', color: '#475569', textAlign: 'right', marginTop: '4px', paddingRight: '5px'
+};
+
+// Update to the internal component to use styled div for limit
+const OptionWrapper = styled.div`
+  .char-limit { font-size: 0.65rem; color: #475569; text-align: right; margin-top: 4px; }
+`;
 
 export default CreatePage;
