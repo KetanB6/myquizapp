@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import styled from 'styled-components';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -459,7 +459,12 @@ const UserDashboard = () => {
       if (response.ok) setQuizzes(await response.json());
     } finally { setLoading(false); }
   };
-
+  const filteredQuizzes = useMemo(() => {
+    return quizzes.filter(q =>
+      (q.quizTitle || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (String(q.quizId)).includes(searchTerm)
+    );
+  }, [quizzes, searchTerm]);
   const handleToggleStatus = async (quizId) => {
     setSwitchingStatusId(quizId);
     try {
@@ -558,7 +563,7 @@ const UserDashboard = () => {
                 </EmptyState>
               ) : (
                 <QuizGrid>
-                  {quizzes.map((quiz) => (
+                  {filteredQuizzes.map((quiz) => (
                     <StyledCard key={quiz.quizId}>
                       <div className="card-header">
                         <div className="icon-bg"><BookOpen size={20} color={primaryColor} /></div>
