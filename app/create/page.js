@@ -16,7 +16,7 @@ const CreatePage = () => {
     quizTitle: "",
     authorName: "", 
     isPrivate: false, 
-    status: "active",
+    status: false,
     timeLimit: false,
     questionPerMin: "" // New field for per-question timer
   });
@@ -80,7 +80,7 @@ const validateAndProceed = async () => {
     createdBy: email,
     quizTitle: title,
     author: author,
-    status: true,                         // FIXED: Changed from "active" to true (Boolean)
+    status: false,                         // FIXED: Changed from "active" to true (Boolean)
     timer: Boolean(quizInfo.timeLimit),   
     private: Boolean(quizInfo.isPrivate), 
     isPrivate: Boolean(quizInfo.isPrivate),

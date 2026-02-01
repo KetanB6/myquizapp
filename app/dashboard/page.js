@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   BookOpen, Clock, AlertCircle, Plus, Loader2, Fingerprint, Eye,
   HelpCircle, ChevronLeft, Edit3, Save, Trash2, Inbox, FileText, X, Trophy, Download,
-  QrCode, Share2, Search, Radio
+  QrCode, Share2, Search, Radio, MoreVertical
 } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import toast, { Toaster } from 'react-hot-toast';
@@ -447,7 +447,7 @@ const LiveParticipantsModal = ({ quizId, onClose }) => {
     };
 
     fetchLive();
-    const interval = setInterval(fetchLive, 1000); // Refresh every 5s
+    const interval = setInterval(fetchLive, 1000); // Refresh every 1s
     return () => clearInterval(interval);
   }, [quizId]);
 
@@ -517,6 +517,7 @@ const UserDashboard = () => {
   const [viewResultId, setViewResultId] = useState(null);
   const [viewQRId, setViewQRId] = useState(null);
   const [switchingStatusId, setSwitchingStatusId] = useState(null);
+  const [activeMenuId, setActiveMenuId] = useState(null); 
   const primaryColor = "#2563eb";
 
   useEffect(() => {
@@ -526,6 +527,10 @@ const UserDashboard = () => {
       setUserEmail(parsedUser.email);
       fetchUserQuizzes(parsedUser.email);
     }
+    // Close menu when clicking elsewhere
+    const closeMenu = () => setActiveMenuId(null);
+    window.addEventListener('click', closeMenu);
+    return () => window.removeEventListener('click', closeMenu);
   }, []);
 
   const fetchUserQuizzes = async (email) => {
@@ -540,12 +545,14 @@ const UserDashboard = () => {
       if (response.ok) setQuizzes(await response.json());
     } finally { setLoading(false); }
   };
+
   const filteredQuizzes = useMemo(() => {
     return quizzes.filter(q =>
       (q.quizTitle || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
       (String(q.quizId)).includes(searchTerm)
     );
   }, [quizzes, searchTerm]);
+
   const handleToggleStatus = async (quizId) => {
     setSwitchingStatusId(quizId);
     try {
@@ -555,10 +562,7 @@ const UserDashboard = () => {
       });
 
       if (response.ok) {
-        // 1. EXTRACT THE INTEGER FROM THE BACKEND RESPONSE
         const minutes = await response.json();
-
-        // 2. Update the UI state (Toggle the active/inactive badge)
         setQuizzes(prev => prev.map(q =>
           q.quizId === quizId
             ? { ...q, status: String(q.status) === "true" ? "false" : "true" }
@@ -583,7 +587,10 @@ const UserDashboard = () => {
     const response = await fetch(`https://noneditorial-professionally-serena.ngrok-free.dev/Logged/Delete/${quizId}`, {
       method: 'DELETE', headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' }
     });
-    if (response.ok) setQuizzes(prev => prev.filter(q => q.quizId !== quizId));
+    if (response.ok) {
+        setQuizzes(prev => prev.filter(q => q.quizId !== quizId));
+        toast.success("Quiz deleted");
+    }
   };
 
   const activeQRQuiz = quizzes.find(q => q.quizId === viewQRId);
@@ -646,28 +653,69 @@ const UserDashboard = () => {
               ) : (
                 <QuizGrid>
                   {filteredQuizzes.map((quiz) => (
-                    <StyledCard key={quiz.quizId}>
+                    <StyledCard 
+                      key={quiz.quizId}
+                      style={{ zIndex: activeMenuId === quiz.quizId ? 100 : 1 }}
+                    >
                       <div className="card-header">
                         <div className="icon-bg"><BookOpen size={20} color={primaryColor} /></div>
-                        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                          <StatusBadge onClick={() => handleToggleStatus(quiz.quizId)} $isActive={String(quiz.status) === "true"} disabled={switchingStatusId === quiz.quizId}>
+                        
+                        <ActionWrapper>
+                          <StatusBadge 
+                             onClick={() => handleToggleStatus(quiz.quizId)} 
+                             $isActive={String(quiz.status) === "true"} 
+                             disabled={switchingStatusId === quiz.quizId}
+                          >
                             {switchingStatusId === quiz.quizId ? <Loader2 size={12} className="spinner" /> : (String(quiz.status) === "true" ? "Active" : "Inactive")}
                           </StatusBadge>
-                          <LiveIconButton onClick={() => setViewLiveId(quiz.quizId)} title="Live Participants">
-                            <Radio size={16} />
-                          </LiveIconButton>
-                          <QRIconButton onClick={() => setViewQRId(quiz.quizId)} title="Show QR"><QrCode size={16} /></QRIconButton>
-                          <EditIconButton onClick={() => setEditQuizId(quiz.quizId)} title="Edit Quiz"><Edit3 size={16} /></EditIconButton>
-                          <ResultIconButton onClick={() => setViewResultId(quiz.quizId)} title="Show Results"><FileText size={16} /></ResultIconButton>
-                          <DeleteIconButton onClick={() => handleDeleteQuiz(quiz.quizId)} title="Delete Quiz"><Trash2 size={16} /></DeleteIconButton>
-                        </div>
+
+                          <div style={{ position: 'relative' }}>
+                            <MoreBtn onClick={(e) => {
+                                e.stopPropagation();
+                                setActiveMenuId(activeMenuId === quiz.quizId ? null : quiz.quizId);
+                            }}>
+                              <MoreVertical size={20} />
+                            </MoreBtn>
+
+                            <AnimatePresence>
+                              {activeMenuId === quiz.quizId && (
+                                <DropdownMenu
+                                  initial={{ opacity: 0, scale: 0.95, y: -10 }}
+                                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                                  exit={{ opacity: 0, scale: 0.95, y: -10 }}
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  <MenuOption onClick={() => setViewLiveId(quiz.quizId)}>
+                                    <Radio size={16} /> Live Participants
+                                  </MenuOption>
+                                  <MenuOption onClick={() => setViewQRId(quiz.quizId)}>
+                                    <QrCode size={16} /> Show QR Code
+                                  </MenuOption>
+                                  <MenuOption onClick={() => setEditQuizId(quiz.quizId)}>
+                                    <Edit3 size={16} /> Edit Details
+                                  </MenuOption>
+                                  <MenuOption onClick={() => setViewResultId(quiz.quizId)}>
+                                    <FileText size={16} /> View Results
+                                  </MenuOption>
+                                  <Divider />
+                                  <MenuOption onClick={() => handleDeleteQuiz(quiz.quizId)} className="delete">
+                                    <Trash2 size={16} /> Delete Quiz
+                                  </MenuOption>
+                                </DropdownMenu>
+                              )}
+                            </AnimatePresence>
+                          </div>
+                        </ActionWrapper>
                       </div>
+
                       <h3 className="quiz-title">{quiz.quizTitle || "Untitled"}</h3>
                       <DataGrid>
                         <div className="data-item"><Clock size={14} /> {quiz.duration}m</div>
                         <div className="data-item"><Fingerprint size={14} /> ID: {quiz.quizId}</div>
                       </DataGrid>
-                      <SeeQuestionBtn onClick={() => setSelectedQuizId(quiz.quizId)} $primary={primaryColor}><Eye size={16} /> See Questions</SeeQuestionBtn>
+                      <SeeQuestionBtn onClick={() => setSelectedQuizId(quiz.quizId)} $primary={primaryColor}>
+                        <Eye size={16} /> See Questions
+                      </SeeQuestionBtn>
                     </StyledCard>
                   ))}
                 </QuizGrid>
@@ -682,10 +730,85 @@ const UserDashboard = () => {
 
 /* --- STYLES --- */
 
+const ActionWrapper = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 12px;
+`;
+
+const MoreBtn = styled.button`
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  &:hover {
+    background: rgba(59, 130, 246, 0.1);
+    color: #3b82f6;
+    border-color: rgba(59, 130, 246, 0.3);
+  }
+`;
+
+const DropdownMenu = styled(motion.div)`
+  position: absolute;
+  top: 110%;
+  right: 0;
+  background: rgba(30, 41, 59, 0.8);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+  width: 210px;
+  z-index: 1000;
+  overflow: hidden;
+  padding: 6px;
+  transform-origin: top right;
+`;
+
+const MenuOption = styled.button`
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #e2e8f0;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  border-radius: 10px;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: rgba(59, 130, 246, 0.15);
+    color: #3b82f6;
+    transform: translateX(4px);
+  }
+
+  &.delete {
+    color: #f87171;
+    &:hover {
+      background: rgba(239, 68, 68, 0.15);
+      color: #ef4444;
+    }
+  }
+`;
+
+const Divider = styled.div`
+  height: 1px;
+  background: rgba(255, 255, 255, 0.05);
+  margin: 6px 8px;
+`;
 
 const SearchWrapper = styled.div`
   margin-bottom: 30px;
-  
   .search-inner {
     display: flex; 
     align-items: center; 
@@ -696,31 +819,22 @@ const SearchWrapper = styled.div`
     gap: 12px; 
     transition: all 0.3s ease;
     backdrop-filter: blur(10px);
-
     &:focus-within { 
       border-color: #3b82f6; 
       background: rgba(30, 41, 59, 0.6); 
       box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1); 
     }
-
-    .search-icon { 
-      color: #64748b; 
-    }
-
+    .search-icon { color: #64748b; }
     input { 
-      background: transparent; /* No background as requested */
+      background: transparent; 
       border: none; 
       color: white; 
       width: 100%; 
       outline: none; 
       font-size: 1rem; 
       padding: 12px 0;
-      
-      &::placeholder {
-        color: #64748b;
-      }
+      &::placeholder { color: #64748b; }
     }
-
     .clear-btn {
       background: rgba(255, 255, 255, 0.1);
       border: none;
@@ -733,132 +847,68 @@ const SearchWrapper = styled.div`
       justify-content: center;
       cursor: pointer;
       transition: 0.2s;
-      
-      &:hover {
-        background: #ef4444;
-        color: white;
-      }
+      &:hover { background: #ef4444; color: white; }
     }
   }
 `;
+
 const ModalOverlay = styled(motion.div)` position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 20px; `;
 const ModalContent = styled(motion.div)` background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(255,255,255,0.1); border-radius: 24px; width: 100%; max-width: 600px; padding: 24px; position: relative; backdrop-filter: blur(16px); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; h3 { display: flex; align-items: center; gap: 10px; margin: 0; } button { background: none; border: none; color: #94a3b8; cursor: pointer; } } .loading-center { display: flex; justify-content: center; padding: 40px; .spinner { animation: spin 1s linear infinite; } } .no-data { text-align: center; color: #94a3b8; padding: 20px; } `;
 const ResultTable = styled.table` width: 100%; border-collapse: collapse; margin-top: 10px; th, td { text-align: left; padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); } th { font-size: 0.8rem; color: #94a3b8; text-transform: uppercase; } .score-cell { color: #10b981; font-weight: 700; } `;
 const DownloadBtn = styled.button` background: rgba(37, 99, 235, 0.1); border: none; color: #3b82f6; padding: 6px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; &:hover { background: #3b82f6; color: white; } `;
-const ResultIconButton = styled.button` background: rgba(255,255,255,0.05); border: none; color: #f59e0b; padding: 8px; border-radius: 8px; cursor: pointer; &:hover { background: #f59e0b; color: white; } `;
-const QRIconButton = styled.button` background: rgba(255,255,255,0.05); border: none; color: #3b82f6; padding: 8px; border-radius: 8px; cursor: pointer; &:hover { background: #3b82f6; color: white; } `;
 const WhatsAppBtn = styled.button` width: 100%; background: #25d366; color: white; border: none; padding: 12px; border-radius: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 10px; cursor: pointer; transition: transform 0.2s; &:hover { transform: scale(1.02); background: #22c35e; } `;
+
 const DashboardWrapper = styled.div`
   max-width: 1200px;
   margin: 0 auto;
   padding: 40px 20px;
   color: #f8fafc;
   margin-top:-50px;
-
   .main-header {
     display: flex;
-    /* Changed: Forced row even on mobile */
     flex-direction: row; 
     justify-content: space-between;
     align-items: center;
     margin-bottom: 40px;
-    gap: 15px; /* Added gap for tight screens */
-
-    h1 {
-      font-size: 1.8rem;
-      font-weight: 800;
-    }
-    
-    .highlight {
-      color: #3b82f6;
-    }
-
+    gap: 15px; 
+    h1 { font-size: 1.8rem; font-weight: 800; }
+    .highlight { color: #3b82f6; }
     @media (max-width: 640px) {
-      /* Ensuring they stay side-by-side */
-      align-items: center; 
-      
-      h1 {
-        font-size: 1.2rem; /* Scaled down slightly so both fit comfortably */
-      }
-      
-      .user-info p {
-        font-size: 0.8rem; /* Scaled down sub-text */
-      }
+      h1 { font-size: 1.2rem; }
+      .user-info p { font-size: 0.8rem; }
     }
   }
-
-  .btn-text {
-    @media (max-width: 640px) {
-      display: none; /* Keeps the button compact on mobile by showing only the plus icon */
-    }
-  }
+  .btn-text { @media (max-width: 640px) { display: none; } }
 `;
-const QuizGrid = styled.div` display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; @media (max-width: 640px) { grid-template-columns: 1fr; } `;
-const StyledCard = styled(motion.div)` background: rgba(30, 41, 59, 0.5); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 20px; padding: 20px; backdrop-filter: blur(10px); .card-header { display: flex; justify-content: space-between; margin-bottom: 15px; } .icon-bg { padding: 8px; background: rgba(37, 99, 235, 0.1); border-radius: 10px; } .quiz-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 15px; color: white; } `;
 
-/* IMPROVED MOBILE EDIT SECTION */
+const QuizGrid = styled.div` display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; @media (max-width: 640px) { grid-template-columns: 1fr; } `;
+
+const StyledCard = styled(motion.div)`
+  background: rgba(30, 41, 59, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  padding: 20px;
+  backdrop-filter: blur(10px);
+  position: relative;
+  overflow: visible; /* CRITICAL: Allows dropdown to pop out */
+  transition: transform 0.2s ease, border-color 0.2s ease;
+
+  &:hover {
+    border-color: rgba(59, 130, 246, 0.3);
+  }
+
+  .card-header { display: flex; justify-content: space-between; margin-bottom: 15px; }
+  .icon-bg { padding: 8px; background: rgba(37, 99, 235, 0.1); border-radius: 10px; }
+  .quiz-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 15px; color: white; }
+`;
+
 const QuestionEditBox = styled.div` background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1); padding: 15px; border-radius: 18px; margin-bottom: 15px; @media (min-width: 640px) { padding: 20px; } .q-top { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 15px; color: #3b82f6; font-weight: 700; } .correct-select { display: flex; align-items: center; gap: 8px; font-size: 0.9rem; select { background: #1e293b; color: white; border: 1px solid #334155; padding: 4px 8px; border-radius: 6px; outline: none; } } .q-input { width: 100%; background: rgba(15, 23, 42, 0.5); border: 1px solid #334155; padding: 12px; border-radius: 10px; color: white; margin-bottom: 15px; font-family: inherit; font-size: 0.95rem; min-height: 80px; resize: vertical; &:focus { border-color: #3b82f6; outline: none; } } .options-grid-edit { display: grid; grid-template-columns: 1fr; gap: 10px; @media (min-width: 640px) { grid-template-columns: 1fr 1fr; } .opt-field { display: flex; align-items: center; gap: 10px; background: rgba(15, 23, 42, 0.3); border: 1px solid #334155; padding: 10px; border-radius: 10px; .opt-label { color: #3b82f6; font-weight: 800; font-size: 0.8rem; } input { background: none; border: none; color: white; width: 100%; outline: none; font-size: 0.9rem; } &:focus-within { border-color: #3b82f6; } } } `;
 
 const CreateBtn = styled(motion.button)` display: flex; align-items: center; gap: 10px; background: ${p => p.$primary}; padding: 10px 20px; border-radius: 12px; color: white; border: none; font-weight: 700; cursor: pointer; `;
-const SaveBtn = styled.button` background: ${p => p.$primary}; color: white; padding: 10px 16px; border-radius: 12px; border: none; font-weight: 700; display: flex; align-items: center; gap: 8px; cursor: pointer; transition: opacity 0.2s; &:disabled { opacity: 0.6; } `;
-const AddQuestionBtn = styled.button` background: rgba(59, 130, 246, 0.1); border: 1px solid #3b82f6; color: #3b82f6; padding: 10px 16px; border-radius: 12px; font-weight: 700; display: flex; align-items: center; gap: 8px; cursor: pointer; &:hover { background: rgba(59, 130, 246, 0.2); } `;
-const BackButton = styled.button` background: none; border: none; color: #3b82f6; cursor: pointer; display: flex; align-items: center; gap: 5px; font-weight: 600; padding: 5px 0; `;
-const DeleteSmallBtn = styled.button` background: rgba(239, 68, 68, 0.1); border: none; color: #ef4444; cursor: pointer; padding: 6px; border-radius: 8px; display: flex; align-items: center; justify-content: center; &:hover { background: #ef4444; color: white; } `;
 const StatusBadge = styled.button` padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; border: none; font-weight: 700; background: ${p => p.$isActive ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)'}; color: ${p => p.$isActive ? '#10b981' : '#f87171'}; cursor: pointer; display: flex; align-items: center; gap: 4px; &:disabled { opacity: 0.8; cursor: not-allowed; } .spinner { animation: spin 1s linear infinite; } @keyframes spin { to { transform: rotate(360deg); } } `;
-const EditIconButton = styled.button` background: rgba(255,255,255,0.05); border: none; color: white; padding: 8px; border-radius: 8px; cursor: pointer; &:hover { background: #3b82f6; } `;
-const DeleteIconButton = styled.button` background: rgba(255,255,255,0.05); border: none; color: #f87171; padding: 8px; border-radius: 8px; cursor: pointer; &:hover { background: #ef4444; color: white; } `;
 const LoadingState = styled.div` display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 50vh; .spinner { animation: spin 1s linear infinite; } `;
 const DataGrid = styled.div` display: flex; gap: 10px; margin-bottom: 15px; .data-item { font-size: 0.75rem; color: #94a3b8; background: rgba(255,255,255,0.05); padding: 4px 8px; border-radius: 6px; display: flex; align-items: center; gap: 4px; } `;
 const SeeQuestionBtn = styled.button` width: 100%; background: rgba(255,255,255,0.05); color: #94a3b8; padding: 10px; border-radius: 10px; border: none; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; &:hover { background: ${p => p.$primary}; color: white; } `;
-const EditLayout = styled.div` max-width: 800px; margin: 0 auto; padding-bottom: 40px; `;
-const ConfigCard = styled.div` background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1); padding: 20px; border-radius: 20px; margin-bottom: 20px; h3 { margin-bottom: 15px; font-size: 1rem; color: #94a3b8; } .form-grid { display: grid; grid-template-columns: 1fr; gap: 15px; @media (min-width: 640px) { grid-template-columns: 1fr 1fr; } .field { display: flex; flex-direction: column; gap: 8px; label { font-size: 0.85rem; color: #64748b; } input { background: rgba(15, 23, 42, 0.5); border: 1px solid #334155; padding: 12px; border-radius: 10px; color: white; &:focus { border-color: #3b82f6; outline: none; } } } } `;
-const QuestionsContainer = styled.div` max-width: 800px; margin: 0 auto; .preview-header { margin-bottom: 20px; font-size: 1.5rem; } `;
-const FullQuestionItem = styled.div` background: rgba(30, 41, 59, 0.5); padding: 20px; border-radius: 15px; margin-bottom: 15px; border: 1px solid rgba(255,255,255,0.05); .q-label { color: #3b82f6; font-size: 0.8rem; font-weight: 700; margin-bottom: 10px; } .q-text { margin-bottom: 15px; font-weight: 500; } .options-grid { display: grid; grid-template-columns: 1fr; gap: 10px; @media (min-width: 640px) { grid-template-columns: 1fr 1fr; } span { padding: 10px; background: rgba(255,255,255,0.03); border-radius: 8px; font-size: 0.9rem; } .correct { border: 1px solid #10b981; color: #10b981; background: rgba(16, 185, 129, 0.05); } } `;
-
-const EditHeaderSection = styled.div` display: flex; flex-direction: column; gap: 15px; margin-bottom: 30px; @media (min-width: 640px) { flex-direction: row; justify-content: space-between; align-items: center; } .left { .edit-title { font-size: 1.3rem; margin-top: 5px; color: white; @media (min-width: 640px) { font-size: 1.8rem; } } } .action-btns { display: flex; gap: 10px; @media (max-width: 640px) { width: 100%; justify-content: flex-end; } } `;
-
-const EmptyState = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 40px 20px;
-  background: rgba(255, 255, 255, 0.02);
-  border: 2px dashed rgba(255, 255, 255, 0.1);
-  border-radius: 24px;
-  color: #94a3b8;
-  gap: 20px;
-  text-align: center;
-  margin-top: 20px;
-  
-  p {
-    font-size: 1rem;
-    font-weight: 500;
-  }
-`;
-
-/* --- ADD THESE AT THE BOTTOM OF YOUR FILE --- */
-
-const LiveIconButton = styled.button`
-  background: rgba(239, 68, 68, 0.1);
-  color: #ef4444;
-  border: none;
-  padding: 6px;
-  border-radius: 6px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  transition: all 0.2s;
-  
-  &:hover { 
-    background: #ef4444; 
-    color: white; 
-  }
-
-  .spinner {
-    animation: spin 2s linear infinite;
-  }
-`;
-
+const EmptyState = styled.div` display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 20px; background: rgba(255, 255, 255, 0.02); border: 2px dashed rgba(255, 255, 255, 0.1); border-radius: 24px; color: #94a3b8; gap: 20px; text-align: center; margin-top: 20px; p { font-size: 1rem; font-weight: 500; } `;
 
 export default UserDashboard;
