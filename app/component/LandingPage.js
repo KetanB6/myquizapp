@@ -47,8 +47,8 @@ const LandingPage = () => {
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.6 }}
                 >
-                    QuizKrida blends artistic design with AI precision to turn 
-                    learning into a high-stakes digital experience.
+                    QuizKrida brings together modern design and AI-powered tools to 
+                    create a powerful digital learning platform.
                 </motion.p>
 
                 <motion.div className="hero-btns" transition={{ delay: 0.8 }}>
@@ -68,17 +68,17 @@ const LandingPage = () => {
                     <div className="approach-card">
                         <span className="num">/01</span>
                         <h3>GENERATE</h3>
-                        <p>Leverage advanced AI to curate specialized challenges in seconds.</p>
+                        <p>Use AI to create unique quizzes and challenges instantly.</p>
                     </div>
                     <div className="approach-card">
                         <span className="num">/02</span>
                         <h3>COMPETE</h3>
-                        <p>Engage in high-octane arenas against global intellectual peers.</p>
+                        <p>Take part in exciting quiz battles with players from around the world.</p>
                     </div>
                     <div className="approach-card">
                         <span className="num">/03</span>
-                        <h3>TRIUMPH</h3>
-                        <p>Secure legacies and premium rewards for your mental prowess.</p>
+                        <h3>REWARDS</h3>
+                        <p>Win rewards and earn recognition for your knowledge and skills.</p>
                     </div>
                 </div>
             </ApproachSection>
@@ -91,33 +91,36 @@ const LandingPage = () => {
                 <QuickActions />
             </CardsWrapper>
 
+            const getRandomNumber = () =>
+            Math.floor(Math.random() * (1500 - 1000 + 1)) + 1000;
+
             <StatsSection>
                 <div className="stats-header">
                     <h2>DESIGNED FOR <span className="gradient">PERFORMANCE.</span></h2>
                 </div>
                 <div className="stats-grid">
                     <div className="stat-item">
-                        <h4>12.4K</h4>
+                        <h4>{getRandomNumber()}</h4>
                         <p>Global Competitors</p>
                     </div>
                     <div className="stat-item">
-                        <h4>$5K+</h4>
+                        <h4>₹5K+</h4>
                         <p>Prize Pool</p>
                     </div>
                     <div className="stat-item">
                         <h4>24/7</h4>
-                        <p>Live Arenas</p>
+                        <p>Live Quizzes</p>
                     </div>
                 </div>
 
                 <WinnerTicker>
                     <div className="ticker-track">
-                        <span>● @Dhiraj_01 won $50 in Weekly Quiz</span>
-                        <span>● @Alex_Dev just earned 'AI Master' Badge</span>
+                        <span>● @Dhiraj_01 won ₹50 in Weekly Quiz</span>
+                        <span>● @Ketan_06 just earned 'AI Master' Badge</span>
                         <span>● @Rahul.js won the Science Bowl</span>
-                        <span>● @Dhiraj_01 won $50 in Weekly Quiz</span>
+                        <span>● @Ketan_06 won ₹50 in Weekly Quiz</span>
                         {/* Duplicate for seamless loop */}
-                        <span>● @Dhiraj_01 won $50 in Weekly Quiz</span>
+                        <span>● @Dhiraj_01 won ₹50 in Weekly Quiz</span>
                         <span>● @Alex_Dev just earned 'AI Master' Badge</span>
                     </div>
                 </WinnerTicker>
