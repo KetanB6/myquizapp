@@ -53,7 +53,8 @@ const PlayQuiz = () => {
     }, []);
 
     useEffect(() => {
-        if (!quizData || isSubmitted) return;
+        // If secondsPerQuestion is 0, we disable the countdown logic
+        if (!quizData || isSubmitted || secondsPerQuestion === 0) return;
 
         if (timeLeft === 0) {
             handleNextQuestion();
@@ -65,7 +66,7 @@ const PlayQuiz = () => {
         }, 1000);
 
         return () => clearInterval(timer);
-    }, [timeLeft, quizData, isSubmitted]);
+    }, [timeLeft, quizData, isSubmitted, secondsPerQuestion]);
 
     const handleNextQuestion = () => {
         const isLastQuestion = currentQuestionIdx === quizData.questions.length - 1;
@@ -94,7 +95,7 @@ const PlayQuiz = () => {
             let dynamicTime = 60; 
             if (configRes.ok) {
                 const configData = await configRes.json();
-                if (configData.quiz && configData.quiz.timePerQ) {
+                if (configData.quiz && configData.quiz.timePerQ !== undefined) {
                     dynamicTime = parseInt(configData.quiz.timePerQ) * 60;
                     setSecondsPerQuestion(dynamicTime);
                 }
@@ -222,12 +223,15 @@ const PlayQuiz = () => {
                 <ResultContainer>
                     <ResultHeader>
                         <div className="flex-row-header">
-                            <div className={isSubmitted ? "score-badge" : "success-badge"}>
-                                {isSubmitted ? <Trophy size={16} /> : <Timer size={16} />}
-                                {isSubmitted 
-                                    ? `Final Score: ${score} / ${quizData.questions.length}` 
-                                    : `Time Remaining: ${timeLeft}s`}
-                            </div>
+                            {/* Hide the timer badge if secondsPerQuestion is 0 */}
+                            {(secondsPerQuestion > 0 || isSubmitted) && (
+                                <div className={isSubmitted ? "score-badge" : "success-badge"}>
+                                    {isSubmitted ? <Trophy size={16} /> : <Timer size={16} />}
+                                    {isSubmitted 
+                                        ? `Final Score: ${score} / ${quizData.questions.length}` 
+                                        : `Time Remaining: ${timeLeft}s`}
+                                </div>
+                            )}
                             <h2>{isSubmitted ? "Performance Summary" : quizData.quiz.quizTitle}</h2>
                         </div>
                         {isSubmitted && (
@@ -237,7 +241,8 @@ const PlayQuiz = () => {
                         )}
                     </ResultHeader>
                     
-                    {!isSubmitted && (
+                    {/* Hide the timer bar if secondsPerQuestion is 0 */}
+                    {!isSubmitted && secondsPerQuestion > 0 && (
                         <TimerBarContainer>
                             <TimerBarFill progress={(timeLeft / secondsPerQuestion) * 100} />
                         </TimerBarContainer>
