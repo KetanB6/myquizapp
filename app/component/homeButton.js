@@ -2,77 +2,132 @@
 import React from "react";
 import styled from "styled-components";
 import { useRouter } from "next/navigation";
+import { Home } from "lucide-react";
 
 const Button = () => {
     const router = useRouter();
+    
     return (
         <StyledWrapper>
             <div
-                aria-label="User Login Button"
+                aria-label="Navigate Home"
                 tabIndex={0}
                 role="button"
-                className="user-profile"
-                onKeyDown={(e) => e.key === "Enter" && router.push("/login")}
+                className="zolvi-nav-btn"
+                onClick={() => router.push("/")}
+                onKeyDown={(e) => e.key === "Enter" && router.push("/")}
             >
-                <div className="user-profile-inner">
-                    <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="100" height="100" viewBox="0 0 50 50">
-                        <path d="M 24.960938 1.1015625 A 1.0001 1.0001 0 0 0 24.386719 1.3105469 L 1.3867188 19.210938 A 1.0001 1.0001 0 1 0 2.6132812 20.789062 L 4 19.708984 L 4 46 A 1.0001 1.0001 0 0 0 5 47 L 18.832031 47 A 1.0001 1.0001 0 0 0 19.158203 47 L 30.832031 47 A 1.0001 1.0001 0 0 0 31.158203 47 L 45 47 A 1.0001 1.0001 0 0 0 46 46 L 46 19.708984 L 47.386719 20.789062 A 1.0001 1.0001 0 1 0 48.613281 19.210938 L 40.96875 13.261719 A 1.0001 1.0001 0 0 0 41 13 L 41 7 A 1.0001 1.0001 0 0 0 40 6 L 36.099609 6 A 1.0001 1.0001 0 0 0 35.099609 7 L 35.099609 8.6933594 L 25.613281 1.3105469 A 1.0001 1.0001 0 0 0 24.960938 1.1015625 z M 25 3.3671875 L 44 18.154297 L 44 45 L 32 45 L 32 27 A 1.0001 1.0001 0 0 0 31 26 L 19 26 A 1.0001 1.0001 0 0 0 18 27.158203 L 18 45 L 6 45 L 6 18.154297 L 25 3.3671875 z M 37.099609 8 L 39 8 L 39 11.728516 L 37.099609 10.25 L 37.099609 8 z M 20 28 L 30 28 L 30 45 L 20 45 L 20 28 z"></path>
-                    </svg>
-                    <p>Home</p>
+                <div className="btn-content">
+                    <Home size={16} strokeWidth={2.5} className="home-icon" />
+                    <span className="btn-text">HOME</span>
                 </div>
+                {/* Premium Liquid Fill effect */}
+                <div className="btn-fill" />
             </div>
         </StyledWrapper>
     );
 };
 
 const StyledWrapper = styled.div`
-  .user-profile {
-    width: 96px;       /* CHANGED */
-    height: 38px;      /* CHANGED */
-    border-radius: 15px;
+  /* Center the button wrapper slightly or align it depending on parent */
+  display: inline-block;
+
+  .zolvi-nav-btn {
+    position: relative;
+    /* Responsive width: slightly larger on mobile for better touch target */
+    width: 120px;
+    height: 44px;
+    
+    @media (min-width: 768px) {
+      width: 110px;
+      height: 40px;
+    }
+
+    background: #000; /* Pure black background base */
+    border: 1px solid rgba(255, 255, 255, 0.2);
     cursor: pointer;
-    transition: 0.3s ease;
-    background: linear-gradient(
-      to bottom right,
-      #2e8eff 0%,
-      rgba(46, 142, 255, 0) 30%
-    );
-    background-color: rgba(46, 142, 255, 0.2);
+    overflow: hidden;
+    transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
     display: flex;
     align-items: center;
     justify-content: center;
+    
+    /* Ensure no weird blue highlights on mobile tap */
+    -webkit-tap-highlight-color: transparent;
   }
 
-  .user-profile:hover,
-  .user-profile:focus {
-    background-color: rgba(46, 142, 255, 0.7);
-    box-shadow: 0 0 10px rgba(46, 142, 255, 0.5);
+  .btn-content {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    color: #ffffff;
+    font-size: 10px;
+    
+    @media (min-width: 768px) {
+      font-size: 11px;
+      gap: 12px;
+    }
+
+    font-weight: 900;
+    letter-spacing: 0.2em;
+    transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+  }
+
+  .home-icon {
+    flex-shrink: 0;
+  }
+
+  .btn-fill {
+    position: absolute;
+    top: 100%; /* Hidden below by default */
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #ffffff;
+    transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+    z-index: 1;
+    will-change: top;
+  }
+
+  /* --- DESKTOP HOVER STATES --- */
+  @media (hover: hover) {
+    .zolvi-nav-btn:hover {
+      border-color: #ffffff;
+    }
+
+    .zolvi-nav-btn:hover .btn-fill {
+      top: 0;
+    }
+
+    .zolvi-nav-btn:hover .btn-content {
+      color: #000000;
+      transform: translateY(-1px);
+    }
+  }
+
+  /* --- MOBILE ACTIVE STATES (Tapping) --- */
+  .zolvi-nav-btn:active {
+    transform: scale(0.95);
+    border-color: #ffffff;
+    
+    /* On mobile, we show the fill briefly on tap */
+    .btn-fill {
+      top: 0;
+    }
+    
+    .btn-content {
+      color: #000000;
+    }
+  }
+
+  /* Focus for Accessibility */
+  .zolvi-nav-btn:focus-visible {
     outline: none;
-  }
-
-  .user-profile-inner {
-    width: 92px;       /* CHANGED */
-    height: 34px;      /* CHANGED */
-    border-radius: 13px;
-    background-color: #1a1a1a;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;         /* slightly reduced to fit */
-    color: #fff;
-    font-weight: 600;
-    font-size: 13px;   /* reduced to fit */
-  }
-
-  .user-profile-inner svg {
-    width: 18px;       /* CHANGED */
-    height: 18px;      /* CHANGED */
-    fill: #fff;
-  }
-
-  .user-profile-inner p {
-    margin: 0;
-    line-height: 1;
+    border-color: #ffffff;
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.4);
   }
 `;
 

@@ -1,9 +1,9 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import styled from 'styled-components';
+import styled, { keyframes } from 'styled-components';
 import { motion } from 'framer-motion';
-import { ChevronLeft, HelpCircle, Clock, Book, Mail } from 'lucide-react';
+import { ChevronLeft, HelpCircle, Clock, Book, Mail, Zap } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
 
 const QuizPreviewPage = () => {
@@ -34,25 +34,32 @@ const QuizPreviewPage = () => {
     fetchFullQuiz();
   }, [id]);
 
-  if (loading) return <PageLoader>Loading Quiz Content...</PageLoader>;
-  if (!data) return <PageLoader>No data found.</PageLoader>;
+  if (loading) return (
+    <PageLoader>
+      <Zap className="spinner" size={32} />
+      <p>Synchronizing Arena Data...</p>
+    </PageLoader>
+  );
+
+  if (!data) return <PageLoader>No session data found.</PageLoader>;
 
   return (
     <PageWrapper initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-      <Toaster />
+      <Toaster toastOptions={{ style: { background: '#18181b', color: '#fff', border: '1px solid #27272a' } }} />
+      
       <nav className="top-nav">
         <button onClick={() => router.back()} className="back-btn">
-          <ChevronLeft size={20} /> Back to Dashboard
+          <ChevronLeft size={18} /> Back to Dashboard
         </button>
       </nav>
 
       <HeaderSection>
-        <div className="badge">Quiz Preview</div>
+        <div className="badge">Preview Mode</div>
         <h1>{data.quiz.quizTitle}</h1>
         <div className="meta-grid">
-          <span><Clock size={16}/> {data.quiz.duration} Mins</span>
-          <span><Book size={16}/> {data.questions.length} Questions</span>
-          <span><Mail size={16}/> {data.quiz.createdBy}</span>
+          <div className="meta-item"><Clock size={14}/> {data.quiz.duration} Mins</div>
+          <div className="meta-item"><Book size={14}/> {data.questions.length} Questions</div>
+          <div className="meta-item"><Mail size={14}/> {data.quiz.createdBy}</div>
         </div>
       </HeaderSection>
 
@@ -62,11 +69,10 @@ const QuizPreviewPage = () => {
             key={index}
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: index * 0.1 }}
+            transition={{ delay: index * 0.05 }}
           >
             <div className="q-header">
-              <HelpCircle size={18} color="#3b82f6" />
-              <span>Question {q.qno}</span>
+              <span className="q-num">Question {index + 1}</span>
             </div>
             <p className="question-text">{q.question}</p>
             
@@ -76,8 +82,10 @@ const QuizPreviewPage = () => {
                   key={optKey} 
                   $isCorrect={data.questions[index].correctOpt === optKey}
                 >
-                  <span className="label">{String.fromCharCode(65 + i)}</span>
-                  {q[optKey]}
+                  <div className="indicator">
+                    {data.questions[index].correctOpt === optKey ? <Zap size={12} fill="currentColor"/> : String.fromCharCode(65 + i)}
+                  </div>
+                  <span className="opt-text">{q[optKey]}</span>
                 </OptionItem>
               ))}
             </OptionsGrid>
@@ -88,27 +96,38 @@ const QuizPreviewPage = () => {
   );
 };
 
-/* --- Styled Components --- */
+/* --- Styled Components (Zolvi Aligned) --- */
+
+const spin = keyframes` from { transform: rotate(0deg); } to { transform: rotate(360deg); } `;
 
 const PageWrapper = styled(motion.div)`
   min-height: 100vh;
-  color: white;
-  padding: 40px 20px;
-  .top-nav { max-width: 800px; margin: 0 auto 30px; }
+  background-color: #09090b;
+  background-image: 
+    radial-gradient(at 0% 0%, rgba(79, 70, 229, 0.08) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, rgba(124, 58, 237, 0.05) 0px, transparent 50%);
+  color: #fafafa;
+  padding: 60px 20px;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+
+  .top-nav { max-width: 800px; margin: 0 auto 40px; }
   .back-btn { 
-    background: none; border: none; color: #94a3b8; cursor: pointer;
-    display: flex; align-items: center; gap: 8px; font-weight: 500;
-    &:hover { color: #fff; }
+    background: transparent; border: 1px solid rgba(255,255,255,0.1); color: #a1a1aa; 
+    padding: 8px 16px; border-radius: 12px; cursor: pointer;
+    display: flex; align-items: center; gap: 8px; font-size: 0.85rem; font-weight: 600;
+    transition: 0.2s;
+    &:hover { color: #fff; border-color: rgba(255,255,255,0.2); background: rgba(255,255,255,0.05); }
   }
 `;
 
 const HeaderSection = styled.div`
   max-width: 800px;
-  margin: 0 auto 50px;
+  margin: 0 auto 60px;
   text-align: center;
-  .badge { background: rgba(59, 130, 246, 0.1); color: #3b82f6; padding: 6px 15px; border-radius: 20px; display: inline-block; font-size: 0.8rem; font-weight: 700; margin-bottom: 15px; }
-  h1 { font-size: 2.5rem; margin-bottom: 20px; }
-  .meta-grid { display: flex; justify-content: center; gap: 25px; color: #64748b; font-size: 0.9rem; }
+  .badge { background: rgba(99, 102, 241, 0.1); color: #818cf8; border: 1px solid rgba(99, 102, 241, 0.2); padding: 6px 14px; border-radius: 100px; display: inline-block; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 20px; }
+  h1 { font-size: 2.75rem; font-weight: 800; letter-spacing: -0.04em; margin-bottom: 24px; color: #fff; }
+  .meta-grid { display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; }
+  .meta-item { display: flex; align-items: center; gap: 8px; color: #71717a; font-size: 0.85rem; font-weight: 500; background: rgba(255,255,255,0.03); padding: 6px 14px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); }
 `;
 
 const QuestionsContainer = styled.div`
@@ -116,40 +135,53 @@ const QuestionsContainer = styled.div`
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 24px;
 `;
 
 const QuestionCard = styled(motion.div)`
-  background: rgba(30, 41, 59, 0.5);
-  border: 1px solid rgba(255,255,255,0.05);
-  padding: 30px;
-  border-radius: 24px;
-  .q-header { display: flex; align-items: center; gap: 10px; color: #3b82f6; font-weight: 700; margin-bottom: 15px; }
-  .question-text { font-size: 1.2rem; line-height: 1.6; margin-bottom: 25px; color: #e2e8f0; }
+  background: rgba(24, 24, 27, 0.4);
+  border: 1px solid rgba(255,255,255,0.08);
+  padding: 40px;
+  border-radius: 32px;
+  backdrop-filter: blur(10px);
+  .q-header { margin-bottom: 16px; }
+  .q-num { color: #6366f1; font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; }
+  .question-text { font-size: 1.35rem; font-weight: 600; line-height: 1.5; margin-bottom: 32px; color: #f4f4f5; }
 `;
 
 const OptionsGrid = styled.div`
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 15px;
+  gap: 16px;
   @media (max-width: 600px) { grid-template-columns: 1fr; }
 `;
 
 const OptionItem = styled.div`
-  padding: 15px 20px;
-  border-radius: 12px;
-  background: ${props => props.$isCorrect ? 'rgba(16, 185, 129, 0.1)' : 'rgba(255,255,255,0.03)'};
+  padding: 18px 20px;
+  border-radius: 18px;
+  background: ${props => props.$isCorrect ? 'rgba(16, 185, 129, 0.05)' : 'rgba(0, 0, 0, 0.2)'};
   border: 1px solid ${props => props.$isCorrect ? '#10b981' : 'rgba(255,255,255,0.05)'};
-  color: ${props => props.$isCorrect ? '#10b981' : '#94a3b8'};
+  color: ${props => props.$isCorrect ? '#34d399' : '#a1a1aa'};
   display: flex;
   align-items: center;
-  gap: 12px;
-  font-weight: ${props => props.$isCorrect ? '600' : '400'};
-  .label { opacity: 0.5; font-size: 0.8rem; }
+  gap: 16px;
+  transition: 0.3s;
+  
+  .indicator {
+    width: 24px; height: 24px; border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.7rem; font-weight: 800;
+    background: ${props => props.$isCorrect ? '#10b981' : 'rgba(255,255,255,0.05)'};
+    color: ${props => props.$isCorrect ? '#fff' : '#71717a'};
+  }
+
+  .opt-text { font-size: 0.95rem; font-weight: ${props => props.$isCorrect ? '600' : '500'}; }
 `;
 
 const PageLoader = styled.div`
-  height: 100vh; display: flex; align-items: center; justify-content: center; background: #0f172a; color: #94a3b8;
+  height: 100vh; display: flex; flex-direction: column; gap: 16px; align-items: center; justify-content: center; background: #09090b; color: #71717a; font-family: 'Plus Jakarta Sans', sans-serif;
+  .spinner { animation: ${spin} 2s linear infinite; color: #6366f1; }
+  p { font-weight: 600; font-size: 0.9rem; }
 `;
 
 export default QuizPreviewPage;

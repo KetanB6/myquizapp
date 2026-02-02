@@ -1,411 +1,482 @@
 "use client";
-import React, { useRef } from 'react'; // Added useRef
-import styled from 'styled-components';
+import React, { useRef } from 'react';
+import styled, { keyframes } from 'styled-components';
 import { motion } from 'framer-motion';
-import { Zap, ChevronRight, Sparkles, Trophy, Users, Gift, Globe, Target, Rocket, ShieldCheck } from 'lucide-react';
+import { 
+  ArrowUpRight, Twitter, Instagram, Github 
+} from 'lucide-react';
 import Link from 'next/link';
 import QuickActions from './QuickActions';
 
 const LandingPage = () => {
-    // Create reference for the target section
     const featuresRef = useRef(null);
 
     const scrollToFeatures = () => {
         featuresRef.current?.scrollIntoView({ behavior: 'smooth' });
     };
 
-    const containerVariants = {
-        hidden: { opacity: 0, y: 30 },
-        visible: {
-            opacity: 1,
-            y: 0,
-            transition: { duration: 0.8, staggerChildren: 0.2 }
-        }
-    };
-
-    const itemVariants = {
-        hidden: { opacity: 0, y: 20 },
-        visible: { opacity: 1, y: 0 }
-    };
-
     return (
         <PageWrapper>
-            <div className="grid-overlay" />
-
+            {/* Background is handled by AppBackground in layout.js */}
+            
             <HeroSection
-                variants={containerVariants}
-                initial="hidden"
-                animate="visible"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 1 }}
             >
-                <motion.div variants={itemVariants} className="badge">
-                    <Sparkles size={14} className="sparkle-icon" />
-                    <span>New: AI Quiz Generation is live</span>
+                <motion.div 
+                    className="tagline"
+                    initial={{ y: 20, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{ delay: 0.2 }}
+                >
+                    T &nbsp; H &nbsp; E &nbsp; &nbsp; N &nbsp; E &nbsp; X &nbsp; T &nbsp; &nbsp; G &nbsp; E &nbsp; N
                 </motion.div>
 
-                <motion.h1 variants={itemVariants}>
-                    The Future of <br />
-                    <span className="gradient-text">Interactive Learning</span>
+                <motion.h1
+                    initial={{ y: 30, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{ delay: 0.4 }}
+                >
+                    LEVEL UP YOUR <br />
+                    <span className="outline-text">INTELLECT</span>
                 </motion.h1>
 
-                <motion.p variants={itemVariants}>
-                    Join thousands of learners using AI to turn any topic into a
-                    competitive challenge. Fast, fun, and completely free.
+                <motion.p
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.6 }}
+                >
+                    QuizKrida blends artistic design with AI precision to turn 
+                    learning into a high-stakes digital experience.
                 </motion.p>
 
-                <motion.div variants={itemVariants} className="hero-btns">
-                    <Link href="/login" className="primary-btn">
-                        Get Started 
-                        <span className="arrow-wrapper">
-                            <ChevronRight size={18} className="arrow-icon" />
-                        </span>
+                <motion.div className="hero-btns" transition={{ delay: 0.8 }}>
+                    <Link href="/login" className="zolvi-btn-primary">
+                        START THE JOURNEY <ArrowUpRight size={20} />
                     </Link>
-                    {/* Added onClick handler */}
-                    <button className="glass-btn" onClick={scrollToFeatures}>
-                        Explore Features
+                    <button className="zolvi-btn-outline" onClick={scrollToFeatures}>
+                        OUR APPROACH
                     </button>
                 </motion.div>
             </HeroSection>
 
-            {/* Added ref to the target section */}
-            <FeatureSteps
-                ref={featuresRef}
-                initial={{ opacity: 0, y: 40 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8 }}
-                viewport={{ once: true }}
-            >
-                <div className="step">
-                    <div className="step-icon"><Rocket size={20} /></div>
-                    <h3>Create</h3>
-                    <p>Generate quizzes with AI in seconds.</p>
+            {/* Approach Section */}
+            <ApproachSection ref={featuresRef}>
+                <div className="section-label">01 — STEPS</div>
+                <div className="approach-grid">
+                    <div className="approach-card">
+                        <span className="num">/01</span>
+                        <h3>GENERATE</h3>
+                        <p>Leverage advanced AI to curate specialized challenges in seconds.</p>
+                    </div>
+                    <div className="approach-card">
+                        <span className="num">/02</span>
+                        <h3>COMPETE</h3>
+                        <p>Engage in high-octane arenas against global intellectual peers.</p>
+                    </div>
+                    <div className="approach-card">
+                        <span className="num">/03</span>
+                        <h3>TRIUMPH</h3>
+                        <p>Secure legacies and premium rewards for your mental prowess.</p>
+                    </div>
                 </div>
-                <div className="connector" />
-                <div className="step">
-                    <div className="step-icon"><Target size={20} /></div>
-                    <h3>Compete</h3>
-                    <p>Challenge friends or join global rooms.</p>
-                </div>
-                <div className="connector" />
-                <div className="step">
-                    <div className="step-icon"><ShieldCheck size={20} /></div>
-                    <h3>Win</h3>
-                    <p>Earn trophies and real-world prizes.</p>
-                </div>
-            </FeatureSteps>
+            </ApproachSection>
 
             <CardsWrapper
-                initial={{ opacity: 0, scale: 0.95 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.5 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                initial={{ opacity: 0, y: 50 }}
                 viewport={{ once: true }}
             >
                 <QuickActions />
             </CardsWrapper>
 
-            <StatsSection
-                initial={{ opacity: 0 }}
-                whileInView={{ opacity: 1 }}
-                transition={{ duration: 1 }}
-                viewport={{ once: true }}
-            >
+            <StatsSection>
+                <div className="stats-header">
+                    <h2>DESIGNED FOR <span className="gradient">PERFORMANCE.</span></h2>
+                </div>
                 <div className="stats-grid">
-                    <div className="stat-card">
-                        <div className="icon-circle blue"><Users size={24} /></div>
-                        <div className="texts">
-                            <h4>12,402</h4>
-                            <p>Active Players</p>
-                        </div>
+                    <div className="stat-item">
+                        <h4>12.4K</h4>
+                        <p>Global Competitors</p>
                     </div>
-
-                    <div className="stat-card">
-                        <div className="icon-circle purple"><Trophy size={24} /></div>
-                        <div className="texts">
-                            <h4>$5,000+</h4>
-                            <p>Monthly Prizes</p>
-                        </div>
+                    <div className="stat-item">
+                        <h4>$5K+</h4>
+                        <p>Prize Pool</p>
                     </div>
-
-                    <div className="stat-card">
-                        <div className="icon-circle green"><Gift size={24} /></div>
-                        <div className="texts">
-                            <h4>850</h4>
-                            <p>Trophies Awarded</p>
-                        </div>
-                    </div>
-
-                    <div className="stat-card">
-                        <div className="icon-circle orange"><Globe size={24} /></div>
-                        <div className="texts">
-                            <h4>Global</h4>
-                            <p>24/7 Tournaments</p>
-                        </div>
+                    <div className="stat-item">
+                        <h4>24/7</h4>
+                        <p>Live Arenas</p>
                     </div>
                 </div>
 
                 <WinnerTicker>
                     <div className="ticker-track">
-                        <span>🏆 @Dhiraj_01 won $50 in Weekly Quiz</span>
-                        <span>⭐ @Alex_Dev just earned 'AI Master' Badge</span>
-                        <span>🏆 @Rahul.js won the Science Bowl</span>
-                        <span>⭐ @Sarah_Quizzer hit 100 day streak</span>
-                        <span>🏆 @Dhiraj_01 won $50 in Weekly Quiz</span>
-                        <span>⭐ @Alex_Dev just earned 'AI Master' Badge</span>
+                        <span>● @Dhiraj_01 won $50 in Weekly Quiz</span>
+                        <span>● @Alex_Dev just earned 'AI Master' Badge</span>
+                        <span>● @Rahul.js won the Science Bowl</span>
+                        <span>● @Dhiraj_01 won $50 in Weekly Quiz</span>
+                        {/* Duplicate for seamless loop */}
+                        <span>● @Dhiraj_01 won $50 in Weekly Quiz</span>
+                        <span>● @Alex_Dev just earned 'AI Master' Badge</span>
                     </div>
                 </WinnerTicker>
             </StatsSection>
+
+            <Footer>
+                <div className="footer-top">
+                    <div className="footer-brand">
+                        <h2>QUIZ<span>KRIDA</span></h2>
+                        <p>Crafting competitive experiences that inspire and convert curiosity into knowledge.</p>
+                    </div>
+                    <div className="footer-nav">
+                        <div className="nav-group">
+                            <h5>NAVIGATE</h5>
+                            <Link href="/">Home</Link>
+                            <Link href="/about">About Us</Link>
+                            <Link href="/services">Services</Link>
+                        </div>
+                        <div className="nav-group">
+                            <h5>CONNECT</h5>
+                            <a href="mailto:hello@quizkrida.com">Get in Touch</a>
+                            <div className="socials">
+                                <Twitter size={18} />
+                                <Instagram size={18} />
+                                <Github size={18} />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div className="footer-bottom">
+                    <p>© 2026 QuizKrida. All Rights Reserved.</p>
+                    <div className="legal">
+                        <span>PRIVACY POLICY</span>
+                        <span>TERMS OF SERVICE</span>
+                    </div>
+                </div>
+            </Footer>
         </PageWrapper>
     );
 };
 
-// --- New Styled Component to Fill Gap ---
-
-const FeatureSteps = styled(motion.div)`
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 30px;
-    margin: 80px auto 100px; /* Large margin to fill vertical space */
-    width: 100%;
-    max-width: 900px;
-    padding: 0 20px;
-    scroll-margin-top: 100px; /* Ensures the scroll doesn't hit the very top edge */
-
-    .step {
-        text-align: center;
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        
-        h3 { color: white; margin: 15px 0 8px; font-size: 1.1rem; }
-        p { color: #a1a1a1; font-size: 0.85rem; line-height: 1.4; }
-    }
-
-    .step-icon {
-        width: 45px;
-        height: 45px;
-        background: rgba(155, 89, 182, 0.1);
-        border: 1px solid rgba(155, 89, 182, 0.3);
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: #9b59b6;
-    }
-
-    .connector {
-        width: 60px;
-        height: 1px;
-        background: linear-gradient(90deg, #9b59b644, transparent);
-        @media (max-width: 768px) { display: none; }
-    }
-
-    @media (max-width: 768px) {
-        flex-direction: column;
-        gap: 40px;
-    }
+// --- Animations ---
+const marquee = keyframes`
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
 `;
 
-// --- Existing Styled Components ---
+// --- Styled Components ---
 
 const PageWrapper = styled.div`
+    color: #ffffff;
     min-height: 100vh;
-    position: relative;
+    width: 100%;
+    font-family: var(--font-sans), 'Inter', sans-serif;
+    background: transparent;
+
+    /* Responsive Offset to account for Navbar */
     margin-top: -80px; 
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-
-    .grid-overlay {
-        position: absolute;
-        inset: 0;
-        background-image: radial-gradient(circle at 2px 2px, #ffffff10 1px, transparent 0);
-        background-size: 40px 40px;
-        mask-image: linear-gradient(to bottom, black, transparent);
-        z-index: 0;
+    @media (min-width: 768px) {
+        margin-top: -140px;
     }
-`;
 
-const HeroSection = styled(motion.section)`
     position: relative;
     z-index: 1;
-    text-align: center;
-    padding: 160px 20px 60px; 
-    max-width: 1000px;
+    overflow-x: hidden;
+`;
 
-    .badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        background: rgba(255, 255, 255, 0.05);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        padding: 6px 16px;
-        border-radius: 100px;
-        color: #9b59b6;
-        font-size: 0.85rem;
-        font-weight: 500;
+const HeroSection = styled.section`
+    position: relative;
+    z-index: 1;
+    padding: 160px 20px 60px; /* Reduced top padding for mobile */
+    @media (min-width: 768px) {
+        padding: 240px 20px 100px;
+    }
+    text-align: center;
+    max-width: 1200px;
+    margin: 0 auto;
+
+    .tagline {
+        font-size: 0.6rem;
+        letter-spacing: 0.5em;
+        @media (min-width: 768px) {
+            font-size: 0.75rem;
+            letter-spacing: 0.8em;
+        }
+        color: #888;
         margin-bottom: 30px;
-        backdrop-filter: blur(5px);
-        .sparkle-icon { animation: rotate 3s linear infinite; }
+        text-transform: uppercase;
     }
 
     h1 {
-        font-size: clamp(2.5rem, 8vw, 5rem);
-        font-weight: 800;
-        letter-spacing: -2px;
-        line-height: 1.1;
-        color: white;
-        margin-bottom: 24px;
-        .gradient-text {
-            background: linear-gradient(90deg, #2d8cf0, #9b59b6);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+        font-size: clamp(2.5rem, 12vw, 7rem);
+        font-weight: 900;
+        line-height: 1;
+        letter-spacing: -0.04em;
+        margin-bottom: 30px;
+
+        .outline-text {
+            color: transparent;
+            -webkit-text-stroke: 1px rgba(255,255,255,0.3);
         }
     }
 
     p {
-        color: #a1a1a1;
-        font-size: 1.25rem;
-        max-width: 650px;
+        max-width: 500px;
         margin: 0 auto 40px;
+        color: #999;
+        font-size: 0.95rem;
         line-height: 1.6;
+        @media (min-width: 768px) {
+            font-size: 1.1rem;
+            max-width: 600px;
+        }
     }
 
     .hero-btns {
         display: flex;
+        flex-direction: column;
         justify-content: center;
         gap: 15px;
-        @media (max-width: 600px) { 
-            flex-direction: column;
-            width: 100%;
-            max-width: 300px;
-            margin: 0 auto;
+        padding: 0 20px;
+        
+        @media (min-width: 768px) { 
+            flex-direction: row; 
+            gap: 20px; 
+            padding: 0;
         }
     }
 
-    .primary-btn {
-        background: #fefefe;
+    .zolvi-btn-primary {
+        background: #fff;
         color: #000;
-        padding: 14px 28px;
-        border-radius: 8px;
-        font-weight: 700;
+        padding: 18px 30px;
+        font-weight: 800;
+        font-size: 0.85rem;
         text-decoration: none;
         display: flex;
         align-items: center;
-        justify-content: center; 
-        gap: 8px;
-        transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        position: relative;
-        overflow: hidden;
-
-        .arrow-wrapper {
-            display: flex;
-            align-items: center;
-            overflow: hidden;
-            width: 18px;
-        }
-
-        .arrow-icon {
-            transition: 0.3s;
-        }
-
+        justify-content: center;
+        gap: 10px;
+        transition: 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+        
         &:hover { 
-            transform: translateY(-3px); 
-            box-shadow: 0 10px 20px rgba(255, 255, 255, 0.1); 
-            .arrow-icon { transform: translateX(4px); }
-        }
-
-        &:active {
-            .arrow-icon {
-                animation: slideRight 0.4s ease-in-out;
-            }
-        }
-
-        @keyframes slideRight {
-            0% { transform: translateX(0); opacity: 1; }
-            45% { transform: translateX(25px); opacity: 0; }
-            50% { transform: translateX(-25px); opacity: 0; }
-            100% { transform: translateX(0); opacity: 1; }
+            background: #ccc;
+            transform: translateY(-2px);
         }
     }
 
-    .glass-btn {
-        background: rgba(255, 255, 255, 0.03);
-        color: white;
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        padding: 14px 28px;
-        border-radius: 8px;
-        font-weight: 600;
+    .zolvi-btn-outline {
+        background: transparent;
+        color: #fff;
+        border: 1px solid rgba(255,255,255,0.2);
+        padding: 18px 30px;
+        font-weight: 800;
+        font-size: 0.85rem;
         cursor: pointer;
-        transition: 0.3s;
-        &:hover { background: rgba(255, 255, 255, 0.08); }
+        transition: 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+        
+        &:hover { 
+            border-color: #fff;
+            background: rgba(255,255,255,0.05);
+        }
+    }
+`;
+
+const ApproachSection = styled.section`
+    position: relative;
+    z-index: 1;
+    padding: 60px 24px;
+    @media (min-width: 768px) {
+        padding: 100px 40px;
+    }
+    max-width: 1200px;
+    margin: 0 auto;
+
+    .section-label {
+        font-size: 0.65rem;
+        color: #555;
+        margin-bottom: 40px;
+        letter-spacing: 0.3em;
+        @media (min-width: 768px) { margin-bottom: 60px; }
     }
 
-    @keyframes rotate {
-        from { transform: rotate(0deg); }
-        to { transform: rotate(360deg); }
+    .approach-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 30px;
+        @media (min-width: 768px) { 
+            grid-template-columns: repeat(3, 1fr); 
+            gap: 40px;
+        }
+    }
+
+    .approach-card {
+        border-top: 1px solid rgba(255,255,255,0.1);
+        padding-top: 24px;
+        
+        .num { color: #555; font-size: 0.75rem; display: block; margin-bottom: 16px; font-weight: 800; }
+        h3 { font-size: 1.25rem; letter-spacing: 0.1em; margin-bottom: 12px; font-weight: 900; }
+        p { color: #888; line-height: 1.6; font-size: 0.9rem; }
     }
 `;
 
 const CardsWrapper = styled(motion.div)`
-    width: 100%;
     position: relative;
     z-index: 1;
-    margin-bottom: 60px;
+    max-width: 1200px;
+    margin: 0 auto 60px;
+    padding: 0 20px;
+    @media (min-width: 768px) { margin-bottom: 100px; }
 `;
 
-const StatsSection = styled(motion.section)`
-    width: 100%;
-    max-width: 1100px;
-    margin: 40px auto 100px;
-    padding: 0 20px;
+const StatsSection = styled.section`
+    position: relative;
+    z-index: 1;
+    padding: 60px 0;
+    @media (min-width: 768px) { padding: 100px 0; }
+    
+    .stats-header {
+        text-align: center;
+        margin-bottom: 40px;
+        @media (min-width: 768px) { margin-bottom: 80px; }
+        
+        h2 { 
+            font-size: clamp(1.5rem, 6vw, 4rem); 
+            font-weight: 900;
+            padding: 0 20px;
+            .gradient { color: #444; }
+        }
+    }
 
     .stats-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 20px;
-        margin-bottom: 50px;
+        grid-template-columns: 1fr;
+        gap: 40px;
+        max-width: 1000px;
+        margin: 0 auto 60px;
+        
+        @media (min-width: 768px) { 
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 100px;
+            gap: 0;
+        }
     }
 
-    .stat-card {
-        background: rgba(255, 255, 255, 0.03);
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        padding: 24px;
-        border-radius: 16px;
-        display: flex;
-        align-items: center;
-        gap: 15px;
-        &:hover { transform: translateY(-5px); background: rgba(255, 255, 255, 0.05); }
+    .stat-item {
+        text-align: center;
+        h4 { 
+            font-size: 2.8rem; 
+            font-weight: 900; 
+            margin-bottom: 5px;
+            @media (min-width: 768px) { font-size: 3.5rem; }
+        }
+        p { color: #555; text-transform: uppercase; letter-spacing: 0.2em; font-size: 0.65rem; font-weight: 800; }
     }
-
-    .icon-circle {
-        width: 50px;
-        height: 50px;
-        border-radius: 12px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        &.blue { background: rgba(45, 140, 240, 0.15); color: #2d8cf0; }
-        &.purple { background: rgba(155, 89, 182, 0.15); color: #9b59b6; }
-        &.green { background: rgba(46, 204, 113, 0.15); color: #2ecc71; }
-        &.orange { background: rgba(230, 126, 34, 0.15); color: #e67e22; }
-    }
-
-    .texts h4 { font-size: 1.5rem; color: white; margin: 0; }
-    .texts p { font-size: 0.85rem; color: #a1a1a1; margin: 0; }
 `;
 
 const WinnerTicker = styled.div`
-    background: linear-gradient(90deg, transparent, rgba(155, 89, 182, 0.1), transparent);
-    border-top: 1px solid rgba(255, 255, 255, 0.05);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    border-top: 1px solid rgba(255,255,255,0.08);
+    border-bottom: 1px solid rgba(255,255,255,0.08);
     padding: 20px 0;
     overflow: hidden;
-    white-space: nowrap;
-    .ticker-track { display: inline-block; animation: marquee 25s linear infinite; }
-    span { color: #fefefe; font-size: 0.95rem; margin-right: 60px; font-weight: 500; }
-    @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+    background: rgba(0,0,0,0.3);
+    
+    .ticker-track {
+        display: flex;
+        gap: 60px;
+        animation: ${marquee} 30s linear infinite;
+        white-space: nowrap;
+        @media (min-width: 768px) { gap: 100px; }
+        
+        span { 
+            font-weight: 800; 
+            letter-spacing: 0.05em; 
+            color: #fff; 
+            font-size: 0.8rem;
+            text-transform: uppercase;
+        }
+    }
+`;
+
+const Footer = styled.footer`
+    position: relative;
+    z-index: 1;
+    background: #000;
+    padding: 60px 24px 30px;
+    @media (min-width: 768px) { padding: 100px 40px 40px; }
+    border-top: 1px solid rgba(255,255,255,0.05);
+
+    .footer-top {
+        max-width: 1200px;
+        margin: 0 auto;
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 50px;
+        margin-bottom: 60px;
+        
+        @media (min-width: 1024px) { 
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 100px;
+        }
+    }
+
+    .footer-brand {
+        max-width: 400px;
+        h2 { 
+            font-weight: 900; 
+            letter-spacing: -0.05em; 
+            margin-bottom: 15px; 
+            font-size: 1.5rem;
+            span { color: #444; } 
+        }
+        p { color: #666; line-height: 1.6; font-size: 0.9rem; }
+    }
+
+    .footer-nav {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 40px;
+        
+        @media (min-width: 768px) { gap: 80px; }
+        
+        .nav-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            h5 { color: #555; letter-spacing: 0.2em; font-size: 0.65rem; margin-bottom: 8px; font-weight: 800; }
+            a { color: #fff; text-decoration: none; font-size: 0.85rem; transition: 0.3s; &:hover { color: #888; } }
+            .socials { display: flex; gap: 18px; color: #fff; margin-top: 10px; }
+        }
+    }
+
+    .footer-bottom {
+        max-width: 1200px;
+        margin: 0 auto;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        align-items: center;
+        gap: 20px;
+        padding-top: 30px;
+        border-top: 1px solid rgba(255,255,255,0.05);
+        color: #444;
+        font-size: 0.7rem;
+        
+        @media (min-width: 768px) { 
+            flex-direction: row; 
+            padding-top: 40px;
+        }
+        
+        .legal { 
+            display: flex; 
+            gap: 20px; 
+            font-weight: 800;
+            span { cursor: pointer; transition: 0.2s; &:hover { color: #888; } }
+        }
+    }
 `;
 
 export default LandingPage;

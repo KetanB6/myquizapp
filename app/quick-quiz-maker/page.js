@@ -4,18 +4,21 @@ import styled, { keyframes, createGlobalStyle } from 'styled-components';
 import {
   Sparkles, Loader2, Trophy, RefreshCcw, Timer,
   ChevronRight, Clipboard, CheckCircle2, XCircle,
-  AlertCircle, MessageSquare, Gamepad2, MousePointer2, Rocket, ExternalLink, Clock
+  AlertCircle, MessageSquare, Gamepad2, MousePointer2, Rocket, ExternalLink, Clock, Zap
 } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
 
 const GlobalStyle = createGlobalStyle`
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body { 
-    background-color: #050505; 
-    color: #e2e2e2; 
+    background-color: #000000; 
+    color: #ffffff; 
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
     overflow-x: hidden;
   }
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: #000; }
+  ::-webkit-scrollbar-thumb { background: #222; }
 `;
 
 const QuickQuizMaker = () => {
@@ -46,13 +49,13 @@ Return ONLY a JSON array. Each object must have keys: "question", "opt1", "opt2"
 The "correctOpt" value must be the text of the correct option Base64 encoded.`;
 
   const handleCopyOnly = () => {
-    if (!topic.trim()) return toast.error("Please enter a topic!");
+    if (!topic.trim()) return toast.error("TOPIC REQUIRED");
     navigator.clipboard.writeText(getPrompt());
-    toast.success("Prompt copied!");
+    toast.success("PROMPT COPIED TO BUFFER");
   };
 
   const triggerAI = (platform) => {
-    if (!topic.trim()) return toast.error("Please enter a topic!");
+    if (!topic.trim()) return toast.error("TOPIC REQUIRED");
     navigator.clipboard.writeText(getPrompt());
     const url = platform === 'chatgpt' ? "https://chatgpt.com/" : "https://gemini.google.com/app";
     setModal({ show: true, platform: platform === 'chatgpt' ? 'ChatGPT' : 'Gemini', url });
@@ -70,7 +73,7 @@ The "correctOpt" value must be the text of the correct option Base64 encoded.`;
   };
 
   const handleProcessPaste = () => {
-    if (!rawJson.trim()) return toast.error("Paste the AI response first!");
+    if (!rawJson.trim()) return toast.error("PASTE CODE FIRST");
     setIsLoading(true);
     try {
       const cleanJson = rawJson.replace(/```json|```/g, "").trim();
@@ -88,7 +91,7 @@ The "correctOpt" value must be the text of the correct option Base64 encoded.`;
       setCurrentQuestionIdx(0);
       setTimeLeft(minsPerQuestion * 60);
     } catch (error) {
-      toast.error("Format error. Check the code block.");
+      toast.error("DATA FORMAT CORRUPTED");
     } finally {
       setIsLoading(false);
     }
@@ -119,18 +122,18 @@ The "correctOpt" value must be the text of the correct option Base64 encoded.`;
     <>
       <GlobalStyle />
       <PageContainer>
-        <Toaster position="top-center" />
+        <Toaster toastOptions={{ style: { background: '#0a0a0a', color: '#fff', border: '1px solid #222' } }} />
 
         {modal.show && (
           <ModalOverlay onClick={() => setModal({ show: false })}>
             <ModalContent onClick={e => e.stopPropagation()}>
-              <div className="icon-wrap"><CheckCircle2 size={32} color="#00ff9d" /></div>
-              <h3>Prompt Copied!</h3>
-              <p>Open {modal.platform} and paste the text to get your quiz code.</p>
+              <div className="icon-wrap"><CheckCircle2 size={32} /></div>
+              <h3>PROMPT BUFFERED</h3>
+              <p>PROMPT COPIED TO CLIPBOARD. INITIALIZE {modal.platform.toUpperCase()} INTERFACE NOW.</p>
               <div className="modal-actions">
-                <button className="cancel" onClick={() => setModal({ show: false })}>Back</button>
+                <button className="cancel" onClick={() => setModal({ show: false })}>ABORT</button>
                 <button className="go" onClick={handleProceedToAI}>
-                  Open {modal.platform} <ExternalLink size={14} />
+                  OPEN {modal.platform.toUpperCase()} <ExternalLink size={14} />
                 </button>
               </div>
             </ModalContent>
@@ -138,135 +141,147 @@ The "correctOpt" value must be the text of the correct option Base64 encoded.`;
         )}
 
         {!quizData ? (
-          <SplitLayout>
-            <GlassCard>
-              <Header>
-                <div className="icon-badge"><Rocket size={20} /></div>
-                <div>
-                  <h2>Quick Quiz Maker</h2>
-                  <p>Ready to start your challenge?</p>
-                </div>
-              </Header>
+          <MainContent>
+            <BrandingSection>
+              <div className="status-pill">
+                <span className="dot" /> SYSTEM ONLINE
+              </div>
+              <SectionTitle>NEURAL ARENA <Zap size={30} fill="#fff" /></SectionTitle>
+              <p className="subtitle">TRANSFORM STATIC AI KNOWLEDGE INTO INTERACTIVE EVALUATIONS.</p>
+              
+              <DesktopInfoGrid>
+                 <InfoItem>
+                    <Timer size={20} />
+                    <div>
+                        <h4>TIMED EVALUATION</h4>
+                        <p>Cement facts under pressure with per-question countdowns.</p>
+                    </div>
+                 </InfoItem>
+                 <InfoItem>
+                    <Rocket size={20} />
+                    <div>
+                        <h4>INSTANT DEPLOY</h4>
+                        <p>No backend required. Copy, paste, and play in seconds.</p>
+                    </div>
+                 </InfoItem>
+              </DesktopInfoGrid>
+            </BrandingSection>
 
-              <FormGrid>
-                <div className="row">
-                  <InputGroup flex={2}>
-                    <label><Sparkles size={12} /> 1. Topic</label>
-                    <input
-                      type="text"
-                      placeholder="Enter a topic..."
-                      value={topic}
-                      onChange={(e) => setTopic(e.target.value)}
-                    />
-                  </InputGroup>
-                  <InputGroup flex={1}>
-                    <label><Clock size={12} /> Limit</label>
-                    <input
-                      type="number"
-                      min="1"
-                      max="3"
-                      value={minsPerQuestion}
-                      onChange={(e) => setMinsPerQuestion(Math.min(3, Math.max(1, parseInt(e.target.value) || 1)))}
-                    />
-                  </InputGroup>
-                </div>
+            <FormSection>
+              <ZolviCard>
+                <CardHeader>
+                  <div className="step-count">CORE_CONFIG</div>
+                  <h3>INITIALIZE ENGINE</h3>
+                </CardHeader>
 
-                <InputGroup>
-                  <label>Generate With</label>
-                  <div className="ai-buttons">
-                    <AIButton className="gpt" onClick={() => triggerAI('chatgpt')}>ChatGPT</AIButton>
-                    <AIButton className="gemini" onClick={() => triggerAI('gemini')}>Gemini</AIButton>
-                    <CopyOnlyBtn onClick={handleCopyOnly} title="Copy prompt only"><Clipboard size={16} /></CopyOnlyBtn>
+                <FormGrid>
+                  <div className="row">
+                    <InputGroup flex={2}>
+                      <label><MessageSquare size={10} /> TOPIC_INPUT</label>
+                      <input
+                        type="text"
+                        placeholder="E.G. QUANTUM COMPUTING..."
+                        value={topic}
+                        onChange={(e) => setTopic(e.target.value)}
+                      />
+                    </InputGroup>
+                    <InputGroup flex={1}>
+                      <label><Clock size={10} /> INTERVAL</label>
+                      <input
+                        type="number"
+                        min="1" max="3"
+                        value={minsPerQuestion}
+                        onChange={(e) => setMinsPerQuestion(Math.min(3, Math.max(1, parseInt(e.target.value) || 1)))}
+                      />
+                    </InputGroup>
                   </div>
-                </InputGroup>
 
-                <InputGroup>
-                  <label><MessageSquare size={12} /> 2. Paste JSON Code Generated By AI</label>
-                  <textarea
-                    value={rawJson}
-                    onChange={(e) => setRawJson(e.target.value)}
-                    placeholder='Paste the code block result here...'
-                  />
-                </InputGroup>
+                  <InputGroup>
+                    <label>SYNC WITH PROVIDER</label>
+                    <ButtonGroup>
+                      <AIButton onClick={() => triggerAI('chatgpt')}>CHATGPT</AIButton>
+                      <AIButton onClick={() => triggerAI('gemini')}>GEMINI</AIButton>
+                      <IconButton onClick={handleCopyOnly}><Clipboard size={18} /></IconButton>
+                    </ButtonGroup>
+                  </InputGroup>
 
-                <PrimaryButton onClick={handleProcessPaste} disabled={isLoading || !rawJson || !topic}>
-                  {isLoading ? <Loader2 className="spinner" size={20} /> : "Start Playing"}
-                </PrimaryButton>
-              </FormGrid>
-            </GlassCard>
+                  <InputGroup>
+                    <label>INJECT RAW_JSON</label>
+                    <textarea
+                      value={rawJson}
+                      onChange={(e) => setRawJson(e.target.value)}
+                      placeholder='PASTE AI GENERATED CODE BLOCK HERE...'
+                    />
+                  </InputGroup>
 
-            <InfoSection>
-              <SectionTitle>Stop Reading. <br /> Start Playing.</SectionTitle>
-              <InfoCard>
-                <div className="info-icon"><Gamepad2 size={24} /></div>
-                <div>
-                  <h3>Chatting AI for practicing questions</h3>
-                  <p>Don't just read answers. Transform your AI conversations into a timed, interactive practice session to truly master any topic.</p>
-                </div>
-              </InfoCard>
-              <InfoCard>
-                <div className="info-icon"><MousePointer2 size={24} /></div>
-                <div>
-                  <h3>Active Practice</h3>
-                  <p>Instead of passive reading, you actively click choices and beat the clock to remember what you learn.</p>
-                </div>
-              </InfoCard>
-              <StepBox>
-                <h4>Simple 3-Step Process:</h4>
-                <ul>
-                  <li><span>1</span> Enter a topic & pick an AI.</li>
-                  <li><span>2</span> Paste the prompt into the AI chat.</li>
-                  <li><span>3</span> Copy the code result & paste it here.</li>
-                </ul>
-              </StepBox>
-            </InfoSection>
-          </SplitLayout>
+                  <PrimaryButton onClick={handleProcessPaste} disabled={isLoading || !rawJson || !topic}>
+                    {isLoading ? <Loader2 className="spinner" size={20} /> : "DEPLOY MISSION"}
+                  </PrimaryButton>
+                </FormGrid>
+              </ZolviCard>
+            </FormSection>
+          </MainContent>
         ) : (
-          <ResultContainer>
-            <ResultHeader>
-              <Badge className={isSubmitted ? "score" : "timer"}>
-                {isSubmitted ? `Final Score: ${score} / ${quizData.length}` : `Time: ${timeLeft}s`}
-              </Badge>
-              {isSubmitted && (
-                <button className="reset-btn" onClick={() => { setQuizData(null); setRawJson(''); setTopic(''); }}>
-                  <RefreshCcw size={14} /> Reset
-                </button>
-              )}
-            </ResultHeader>
-            <QuestionCard>
+          <ArenaLayout>
+            <ArenaHeader>
+              <div className="meta">
+                <span className="topic-badge">{topic.toUpperCase()}</span>
+                <span className="station-count">STATION {currentQuestionIdx + 1} / {quizData.length}</span>
+              </div>
+              <div className="stats">
+                <TimerBadge className={isSubmitted ? "score" : "active"}>
+                    {isSubmitted ? `RESULT: ${score}/${quizData.length}` : `TIME: ${timeLeft}S`}
+                </TimerBadge>
+                {isSubmitted && (
+                    <TerminateBtn onClick={() => { setQuizData(null); setRawJson(''); setTopic(''); }}>
+                        TERMINATE SESSION
+                    </TerminateBtn>
+                )}
+              </div>
+            </ArenaHeader>
+
+            <QuestionView>
               {quizData.map((q, idx) => {
                 if (!isSubmitted && idx !== currentQuestionIdx) return null;
                 return (
-                  <div key={idx} style={{ marginBottom: isSubmitted ? '40px' : '0' }}>
-                    <div className="q-num">Question {idx + 1}</div>
-                    <h3>{q.question}</h3>
-                    <div className="options-list">
+                  <motion-div key={idx} className="q-wrapper">
+                    <h2 className="question-text">{q.question.toUpperCase()}</h2>
+                    <OptionsGrid>
                       {[q.opt1, q.opt2, q.opt3, q.opt4].map((opt, i) => {
                         const isSelected = userAnswers[idx] === opt;
                         const correct = checkIsCorrect(q, opt);
-                        let status = isSubmitted ? (correct ? "correct" : (isSelected ? "wrong" : "")) : (isSelected ? "selected" : "");
+                        let variant = isSubmitted ? (correct ? "correct" : (isSelected ? "wrong" : "idle")) : (isSelected ? "selected" : "idle");
                         return (
-                          <Option key={i} className={status} onClick={() => !isSubmitted && setUserAnswers({ ...userAnswers, [idx]: opt })}>
-                            {opt}
-                          </Option>
+                          <OptionCard 
+                            key={i} 
+                            className={variant} 
+                            onClick={() => !isSubmitted && setUserAnswers({ ...userAnswers, [idx]: opt })}
+                          >
+                            <span className="index">{String.fromCharCode(65 + i)}</span>
+                            {opt.toUpperCase()}
+                          </OptionCard>
                         );
                       })}
-                    </div>
+                    </OptionsGrid>
                     {isSubmitted && !checkIsCorrect(q, userAnswers[idx]) && (
-                      <div className="explanation"><AlertCircle size={12} /> Correct Answer: {q[q.decodedAnswer] || q.decodedAnswer}</div>
+                      <div className="feedback-bar">
+                        <AlertCircle size={14} /> CORRECT_KEY: {String(q[q.decodedAnswer] || q.decodedAnswer).toUpperCase()}
+                      </div>
                     )}
-                  </div>
+                  </motion-div>
                 );
               })}
-            </QuestionCard>
+            </QuestionView>
+
             {!isSubmitted && (
-              <StickyFooter>
-                <SubmitButton onClick={handleNextQuestion}>
-                  {currentQuestionIdx === quizData.length - 1 ? "Finish Quiz" : "Next Question"} <ChevronRight size={18} />
-                </SubmitButton>
-              </StickyFooter>
+              <ArenaFooter>
+                <ActionButton onClick={handleNextQuestion}>
+                  {currentQuestionIdx === quizData.length - 1 ? "FINISH MISSION" : "NEXT STATION"} 
+                  <ChevronRight size={20} />
+                </ActionButton>
+              </ArenaFooter>
             )}
-          </ResultContainer>
+          </ArenaLayout>
         )}
       </PageContainer>
     </>
@@ -275,72 +290,155 @@ The "correctOpt" value must be the text of the correct option Base64 encoded.`;
 
 // --- STYLES ---
 const spin = keyframes` from { transform: rotate(0deg); } to { transform: rotate(360deg); } `;
+const pulse = keyframes` 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } `;
 
 const PageContainer = styled.div`
-    width: 100vw; min-height: 100vh; display: flex; align-items: center; justify-content: center;  padding: 40px 20px;
-    @media (max-width: 900px) { align-items: flex-start; }
+  min-height: 100vh; width: 100%; display: flex; justify-content: center; align-items: flex-start;
+  padding: 40px 20px; background: #000;
+  @media (max-width: 768px) { padding: 20px 15px; }
 `;
 
-const SplitLayout = styled.div`
-    display: grid; grid-template-columns: 1fr 1fr; gap: 60px; width: 100%; max-width: 1050px; align-items: center;
-    @media (max-width: 900px) { grid-template-columns: 1fr; gap: 40px; }
+const MainContent = styled.div`
+  display: grid; grid-template-columns: 1fr 1fr; gap: 80px; width: 100%; max-width: 1200px; align-items: center;
+  @media (max-width: 1024px) { grid-template-columns: 1fr; gap: 60px; text-align: center; }
 `;
 
-const GlassCard = styled.div` background: #0f0f0f; border: 1px solid #222; border-radius: 24px; padding: 32px; box-shadow: 0 20px 40px rgba(0,0,0,0.4); `;
-
-const Header = styled.div`
-    display: flex; gap: 16px; margin-bottom: 28px;
-    .icon-badge { width: 44px; height: 44px; background: rgba(0, 255, 157, 0.05); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #00ff9d; border: 1px solid rgba(0, 255, 157, 0.1); }
-    h2 { font-size: 1.4rem; color: #fff; } p { color: #666; font-size: 0.9rem; }
+const BrandingSection = styled.div`
+  .status-pill {
+    display: inline-flex; align-items: center; gap: 8px; background: #111; padding: 6px 12px;
+    border-radius: 100px; font-size: 10px; font-weight: 900; letter-spacing: 2px; color: #666; margin-bottom: 24px;
+    .dot { width: 6px; height: 6px; background: #fff; border-radius: 50%; animation: ${pulse} 2s infinite; }
+  }
+  .subtitle { color: #666; font-size: 0.95rem; font-weight: 500; margin-top: 15px; }
 `;
 
-const FormGrid = styled.div` display: flex; flex-direction: column; gap: 20px; .row { display: flex; gap: 12px; } `;
+const SectionTitle = styled.h1`
+  font-size: clamp(2.5rem, 8vw, 4.5rem); font-weight: 900; line-height: 0.9; letter-spacing: -3px;
+  display: flex; align-items: center; gap: 20px;
+  @media (max-width: 1024px) { justify-content: center; }
+`;
+
+const DesktopInfoGrid = styled.div`
+  display: flex; flex-direction: column; gap: 30px; margin-top: 50px;
+  @media (max-width: 1024px) { display: none; }
+`;
+
+const InfoItem = styled.div`
+  display: flex; gap: 20px; text-align: left;
+  h4 { font-size: 0.8rem; font-weight: 900; letter-spacing: 1px; color: #fff; margin-bottom: 5px; }
+  p { font-size: 0.85rem; color: #444; font-weight: 500; line-height: 1.4; }
+`;
+
+const FormSection = styled.div` width: 100%; max-width: 500px; margin: 0 auto; `;
+
+const ZolviCard = styled.div` 
+    background: #000; border: 1px solid #1a1a1a; padding: 40px; 
+    @media (max-width: 600px) { padding: 25px; }
+`;
+
+const CardHeader = styled.div`
+  margin-bottom: 30px;
+  .step-count { font-size: 10px; font-weight: 900; color: #333; letter-spacing: 2px; margin-bottom: 5px; }
+  h3 { font-size: 1.2rem; font-weight: 900; letter-spacing: 1px; }
+`;
+
+const FormGrid = styled.div` display: flex; flex-direction: column; gap: 20px; .row { display: flex; gap: 15px; } `;
 
 const InputGroup = styled.div`
-    flex: ${props => props.flex || 'none'};
-    label { display: block; color: #555; font-size: 0.75rem; text-transform: uppercase; margin-bottom: 8px; font-weight: 800; letter-spacing: 0.5px; }
-    input { width: 100%; background: #000; border: 1px solid #222; border-radius: 10px; padding: 12px; color: #fff; font-size: 1rem; transition: 0.2s; &:focus { border-color: #00ff9d; outline: none; } }
-    textarea { width: 100%; height: 110px; background: #000; border: 1px solid #222; border-radius: 10px; padding: 12px; color: #00ff9d; font-family: monospace; font-size: 0.85rem; resize: none; transition: 0.2s; &:focus { border-color: #00ff9d; outline: none; } }
-    .ai-buttons { display: grid; grid-template-columns: 1fr 1fr 50px; gap: 10px; }
+  flex: ${props => props.flex || 'none'};
+  label { display: block; font-size: 9px; font-weight: 900; color: #444; margin-bottom: 10px; letter-spacing: 1.5px; }
+  input, textarea {
+    width: 100%; background: #080808; border: 1px solid #1a1a1a; padding: 16px; color: #fff;
+    font-size: 0.9rem; transition: 0.3s;
+    &:focus { border-color: #fff; outline: none; background: #000; }
+  }
+  textarea { height: 120px; font-family: 'JetBrains Mono', monospace; resize: none; font-size: 0.8rem; }
 `;
+
+const ButtonGroup = styled.div` display: flex; gap: 1px; background: #1a1a1a; border: 1px solid #1a1a1a; `;
 
 const AIButton = styled.button`
-    padding: 12px; border-radius: 10px; border: 1px solid #222; font-weight: 700; cursor: pointer; color: #fff; font-size: 0.85rem; transition: 0.2s; background: #000;
-    &.gpt { border-color: #10a37f; color: #10a37f; &:hover { background: rgba(16, 163, 127, 0.15); } }
-    &.gemini { border-color: #1a73e8; color: #1a73e8; &:hover { background: rgba(26, 115, 232, 0.15); } }
+  flex: 1; padding: 15px; background: #000; border: none; color: #666; font-size: 11px; font-weight: 900;
+  cursor: pointer; transition: 0.2s; &:hover { color: #fff; background: #0a0a0a; }
 `;
 
-const CopyOnlyBtn = styled.button` background: #000; color: #555; border: 1px solid #222; border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; &:hover { color: #fff; border-color: #444; } `;
-
-const PrimaryButton = styled.button` width: 100%; padding: 16px; border-radius: 14px; border: none; font-weight: 800; background: linear-gradient(135deg, #00ff9d, #6366f1); cursor: pointer; color: #000; font-size: 1rem; &:disabled { opacity: 0.2; cursor: not-allowed; } .spinner { animation: ${spin} 1s linear infinite; } `;
-
-const InfoSection = styled.div` display: flex; flex-direction: column; gap: 28px; `;
-const SectionTitle = styled.h2` font-size: 2.8rem; font-weight: 900; color: #fff; line-height: 1.1; letter-spacing: -1.5px; `;
-const InfoCard = styled.div`
-    display: flex; gap: 16px; 
-    .info-icon { color: #00ff9d; padding-top: 4px; }
-    h3 { color: #fff; font-size: 1.2rem; margin-bottom: 6px; } p { color: #777; font-size: 0.95rem; line-height: 1.5; }
-`;
-const StepBox = styled.div`
-    background: rgba(255,255,255,0.03); border: 1px solid #1a1a1a; padding: 28px; border-radius: 20px;
-    h4 { color: #555; margin-bottom: 18px; font-size: 0.85rem; text-transform: uppercase; font-weight: 800; }
-    ul { list-style: none; display: flex; flex-direction: column; gap: 14px; }
-    li { display: flex; align-items: center; gap: 14px; color: #999; font-size: 1rem; }
-    span { width: 24px; height: 24px; background: #00ff9d; color: #000; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 900; }
+const IconButton = styled.button`
+  width: 50px; background: #000; color: #333; border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; &:hover { color: #fff; }
 `;
 
-const ResultContainer = styled.div` width: 100%; max-width: 700px; margin: 0 auto; `;
-const ResultHeader = styled.div` display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; .reset-btn { background: #111; color: #fff; border: 1px solid #222; padding: 8px 16px; border-radius: 10px; cursor: pointer; font-size: 0.85rem; display: flex; gap: 6px; } `;
-const Badge = styled.div` padding: 6px 14px; border-radius: 100px; font-weight: 800; font-size: 0.8rem; &.timer { background: rgba(0, 255, 157, 0.1); color: #00ff9d; } &.score { background: #f1c40f; color: #000; } `;
-const QuestionCard = styled.div` background: #0f0f0f; border: 1px solid #222; padding: 32px; border-radius: 24px; .q-num { color: #00ff9d; font-size: 0.8rem; font-weight: 900; margin-bottom: 8px; } h3 { font-size: 1.2rem; margin-bottom: 24px; line-height: 1.4; } `;
-const Option = styled.div`
-    padding: 14px 20px; border-radius: 12px; background: #000; border: 1px solid #222; margin-bottom: 12px; cursor: pointer; color: #888; font-size: 1rem; transition: 0.2s;
-    &.selected { border-color: #00ff9d; color: #fff; } &.correct { border-color: #2ecc71; color: #2ecc71; } &.wrong { border-color: #e74c3c; color: #e74c3c; }
+const PrimaryButton = styled.button`
+  width: 100%; padding: 20px; background: #fff; color: #000; border: none; font-weight: 900;
+  font-size: 0.9rem; letter-spacing: 1px; cursor: pointer; transition: 0.2s;
+  &:hover:not(:disabled) { background: #ccc; }
+  &:disabled { opacity: 0.1; cursor: not-allowed; }
+  .spinner { animation: ${spin} 1s linear infinite; }
 `;
-const StickyFooter = styled.div` position: fixed; bottom: 30px; left: 0; width: 100%; display: flex; justify-content: center; padding: 0 20px; `;
-const SubmitButton = styled(PrimaryButton)` width: auto; min-width: 180px; border-radius: 100px; `;
 
-const ModalOverlay = styled.div` position: fixed; inset: 0; background: rgba(0,0,0,0.9); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 20px; `;
-const ModalContent = styled.div` background: #111; border: 1px solid #222; padding: 32px; border-radius: 24px; max-width: 380px; text-align: center; h3 { margin: 15px 0; font-size: 1.5rem; } p { color: #777; font-size: 0.95rem; line-height: 1.5; margin-bottom: 28px; } .modal-actions { display: flex; gap: 12px; button { flex: 1; padding: 14px; border-radius: 12px; border: none; cursor: pointer; font-weight: 700; font-size: 0.9rem; } .cancel { background: #222; color: #888; } .go { background: #fff; color: #000; } } `;
+const ArenaLayout = styled.div` width: 100%; max-width: 800px; display: flex; flex-direction: column; gap: 40px; `;
+
+const ArenaHeader = styled.div`
+  display: flex; justify-content: space-between; align-items: flex-end; padding-bottom: 20px; border-bottom: 1px solid #1a1a1a;
+  .meta { display: flex; flex-direction: column; gap: 8px; }
+  .topic-badge { font-size: 10px; font-weight: 900; letter-spacing: 2px; color: #444; }
+  .station-count { font-size: 1.2rem; font-weight: 900; }
+  .stats { text-align: right; }
+  @media (max-width: 600px) { flex-direction: column; align-items: flex-start; gap: 20px; .stats { text-align: left; } }
+`;
+
+const TimerBadge = styled.div`
+  font-size: 0.9rem; font-weight: 900; letter-spacing: 1px;
+  &.active { color: #fff; }
+  &.score { background: #fff; color: #000; padding: 6px 15px; }
+`;
+
+const TerminateBtn = styled.button`
+  background: none; border: none; color: #444; font-size: 10px; font-weight: 900; cursor: pointer;
+  margin-top: 10px; text-decoration: underline; &:hover { color: #fff; }
+`;
+
+const QuestionView = styled.div`
+  .question-text { font-size: clamp(1.4rem, 4vw, 2.2rem); font-weight: 900; line-height: 1.1; letter-spacing: -1px; margin-bottom: 40px; }
+  .q-wrapper { margin-bottom: 60px; }
+  .feedback-bar { margin-top: 20px; font-size: 11px; font-weight: 900; color: #fff; background: #111; padding: 12px; display: flex; align-items: center; gap: 10px; }
+`;
+
+const OptionsGrid = styled.div` display: grid; grid-template-columns: 1fr 1fr; gap: 15px; @media (max-width: 600px) { grid-template-columns: 1fr; } `;
+
+const OptionCard = styled.div`
+  padding: 25px; border: 1px solid #1a1a1a; font-weight: 700; font-size: 0.95rem; cursor: pointer;
+  display: flex; align-items: center; gap: 15px; transition: 0.2s;
+  .index { width: 24px; height: 24px; border: 1px solid #222; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 900; color: #444; }
+  
+  &:hover:not(.correct):not(.wrong) { background: #080808; border-color: #333; }
+  &.selected { background: #fff; color: #000; border-color: #fff; .index { border-color: #000; color: #000; } }
+  &.correct { background: #fff; color: #000; border-color: #fff; font-weight: 900; .index { background: #000; color: #fff; border: none; } }
+  &.wrong { border-color: #111; color: #222; .index { border-color: #111; color: #111; } }
+`;
+
+const ArenaFooter = styled.div`
+  position: fixed; bottom: 0; left: 0; width: 100%; padding: 30px; background: rgba(0,0,0,0.8);
+  backdrop-filter: blur(10px); border-top: 1px solid #1a1a1a; display: flex; justify-content: center;
+`;
+
+const ActionButton = styled.button`
+  background: #fff; color: #000; border: none; padding: 18px 40px; font-weight: 900;
+  display: flex; align-items: center; gap: 15px; cursor: pointer; font-size: 1rem;
+  @media (max-width: 600px) { width: 100%; justify-content: center; }
+`;
+
+const ModalOverlay = styled.div` position: fixed; inset: 0; background: rgba(0,0,0,0.95); display: flex; align-items: center; justify-content: center; z-index: 2000; padding: 20px; `;
+const ModalContent = styled.div`
+  background: #000; border: 1px solid #1a1a1a; padding: 50px; max-width: 450px; text-align: center;
+  .icon-wrap { width: 60px; height: 60px; border: 1px solid #fff; display: flex; align-items: center; justify-content: center; margin: 0 auto 30px; }
+  h3 { font-size: 1.5rem; font-weight: 900; letter-spacing: -1px; margin-bottom: 10px; }
+  p { color: #444; font-size: 0.85rem; font-weight: 600; line-height: 1.5; margin-bottom: 40px; }
+  .modal-actions {
+    display: flex; gap: 1px; background: #1a1a1a; border: 1px solid #1a1a1a;
+    button { flex: 1; padding: 20px; border: none; font-weight: 900; font-size: 0.8rem; cursor: pointer; }
+    .cancel { background: #000; color: #444; &:hover { color: #fff; } }
+    .go { background: #fff; color: #000; }
+  }
+`;
 
 export default QuickQuizMaker;

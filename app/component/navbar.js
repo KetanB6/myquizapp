@@ -1,29 +1,25 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import Button from "./loginbutton"; // Your existing Login Modal trigger
+import Button from "./loginbutton"; 
 import ButtonHome from "./homeButton";
 import Link from "next/link";
 import Logo from "./Logo";
 import Profileee from "./profileButton";
 import { useRouter } from 'next/navigation';
+import styled from "styled-components";
 
 const Navbar = () => {
   const [isAuth, setIsAuth] = useState(false);
   const router = useRouter();
 
-  // Check login status on mount and keep it updated
   useEffect(() => {
     const checkToken = () => {
       const token = localStorage.getItem("token");
-      setIsAuth(!!token); // Sets true if token exists, false if null
+      setIsAuth(!!token);
     };
 
     checkToken();
-
-    // Listen for storage changes to handle login/logout across tabs
     window.addEventListener("storage", checkToken);
-    
-    // Check every second to catch same-page login/logout without refresh
     const interval = setInterval(checkToken, 1000);
 
     return () => {
@@ -32,89 +28,129 @@ const Navbar = () => {
     };
   }, []);
 
-  const handleProfileClick = () => {
-    router.push("/login");
-  };
-
   return (
-    <nav className="sticky top-0 z-50 mb-7 backdrop-blur-md shadow-md">
-      <div className="mx-auto px-4">
-
-        {/* DESKTOP GRID */}
-        <div className="hidden justify-between md:grid h-16 grid-cols-2 items-center">
-
-          {/* LEFT: Logo */}
+    <NavContainer>
+      <div className="nav-inner">
+        
+        {/* LEFT: Logo Section */}
+        <div className="logo-section" onClick={() => router.push("/")}>
           <Logo />
-
-          {/* RIGHT: Home + Auth Buttons */}
-          <div className="flex justify-end items-center gap-6">
-            <Link
-              href="/"
-              className="text-gray-600 font-semibold hover:text-blue-600 transition-colors duration-200"
-            >
-              <ButtonHome />
-            </Link>
-
-            {isAuth ? (
-              /* --- LOGGED IN VIEW: Profile Button --- */
-              <button
-                onClick={handleProfileClick}
-                className="transition-all transform hover:scale-105"
-              >
-                <Profileee />
-              </button>
-            ) : (
-              /* --- LOGGED OUT VIEW: Login Button --- */
-              <Button />
-            )}
-          </div>
         </div>
 
-        {/* MOBILE FLEX */}
-        <div className="flex md:hidden h-16 items-center justify-between">
-
-          {/* LEFT: Logo */}
-          <div className="flex items-center gap-3 group cursor-pointer" onClick={() => router.push("/")}>
-            <svg width="200" height="60" viewBox="0 0 260 80" xmlns="http://www.w3.org/2000/svg">
-              <defs>
-                <linearGradient id="grad_quiz" x1="0%" y1="0%" x2="100%" y2="0%">
-                  <stop offset="0%" stopColor="#2563eb" />
-                  <stop offset="50%" stopColor="#2563eb" />
-                  <stop offset="100%" stopColor="#e0f2fe" />
-                </linearGradient>
-              </defs>
-              <text
-                x="0"
-                y="55"
-                fontSize="32"
-                fontWeight="800"
-                fill="url(#grad_quiz)"
-                fontFamily="Poppins, sans-serif"
-              >
-                Quizक्रिडा
-              </text>
-            </svg>
+        {/* RIGHT: Navigation Actions */}
+        <div className="actions-section">
+          {/* Desktop Links - Optimized for high-end spacing */}
+          <div className="desktop-links">
+            <Link href="/">
+              <ButtonHome />
+            </Link>
           </div>
 
-          {/* RIGHT: Actions */}
-          <div className="flex items-center gap-3">
+          <div className="auth-zone">
             {isAuth ? (
-              /* --- Mobile Profile Button --- */
-              <button
-                onClick={handleProfileClick}
-                className="transition-all"
-              >
-                <Profileee />
-              </button>
+                <Profileee className="profile-trigger" />
             ) : (
-              /* --- Mobile Login Button --- */
               <Button />
             )}
           </div>
         </div>
       </div>
-    </nav>
+    </NavContainer>
   );
 };
+
+// --- Zolvi-Inspired Styled Components ---
+
+const NavContainer = styled.nav`
+  position: sticky;
+  top: 0;
+  z-index: 1000; /* Higher z-index to stay above all content */
+  width: 100%;
+  
+  /* Dark mode glassmorphism */
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px); /* Safari support */
+  
+  /* Thin industrial border */
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  
+  /* Responsive padding */
+  padding: 0 1rem;
+  @media (min-width: 768px) {
+    padding: 0 2.5rem;
+  }
+
+  .nav-inner {
+    max-width: 1400px;
+    margin: 0 auto;
+    
+    /* Variable height for mobile vs desktop */
+    height: 64px; 
+    @media (min-width: 768px) {
+      height: 85px; 
+    }
+    
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .logo-section {
+    cursor: pointer;
+    flex-shrink: 0; /* Prevents logo from squishing on small screens */
+    transition: opacity 0.3s ease;
+    
+    &:hover {
+      opacity: 0.8;
+    }
+
+    /* Scaling the logo wrapper to ensure it fits mobile */
+    max-width: 140px;
+    @media (min-width: 768px) {
+      max-width: none;
+    }
+  }
+
+  .actions-section {
+    display: flex;
+    align-items: center;
+    /* Tighter gap on mobile to fit Home + Login buttons */
+    gap: 0.75rem;
+    @media (min-width: 768px) {
+      gap: 1.5rem;
+    }
+  }
+
+  .desktop-links {
+    display: flex;
+    align-items: center;
+    
+    /* On extremely small devices (< 400px), we hide the Home text 
+       to prevent the Login button from being pushed off.
+    */
+    @media (max-width: 400px) {
+      display: none;
+    }
+  }
+
+  .profile-trigger {
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    transition: transform 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+    
+    &:hover {
+      transform: translateY(-2px);
+    }
+  }
+
+  .auth-zone {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+  }
+`;
 
 export default Navbar;

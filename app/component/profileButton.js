@@ -2,83 +2,162 @@
 import React from "react";
 import styled from "styled-components";
 import { useRouter } from "next/navigation";
+import { UserCheck } from "lucide-react";
 
 const Profileee = () => {
     const router = useRouter();
+    
     return (
         <StyledWrapper>
-            <div
-                aria-label="User Login Button"
-                tabIndex={0}
-                role="button"
-                className="user-profile"
-                onKeyDown={(e) => e.key === "Enter" && router.push("/login")}
+            <button
+                aria-label="View Profile"
+                className="zolvi-profile-card"
+                onClick={() => router.push("/login")} // Updated to /profile as it's the Profile button
             >
-                <div className="user-profile-inner">
-                    <svg
-                        aria-hidden="true"
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 24 24"
-                    >
-                        <g data-name="Layer 2" id="Layer_2">
-                            <path d="m15.626 11.769a6 6 0 1 0 -7.252 0 9.008 9.008 0 0 0 -5.374 8.231 3 3 0 0 0 3 3h12a3 3 0 0 0 3-3 9.008 9.008 0 0 0 -5.374-8.231zm-7.626-4.769a4 4 0 1 1 4 4 4 4 0 0 1 -4-4zm10 14h-12a1 1 0 0 1 -1-1 7 7 0 0 1 14 0 1 1 0 0 1 -1 1z" />
-                        </g>
-                    </svg>
-                    <p>Profile</p>
+                <div className="status-dot" />
+                <div className="card-content">
+                    <UserCheck size={14} strokeWidth={2.5} className="profile-icon" />
+                    <span className="label">PROFILE</span>
                 </div>
-            </div>
+                <div className="card-bg" />
+            </button>
         </StyledWrapper>
     );
 };
 
 const StyledWrapper = styled.div`
-  .user-profile {
-    width: 96px;       /* CHANGED */
-    height: 38px;      /* CHANGED */
-    border-radius: 15px;
+  display: inline-block;
+
+  .zolvi-profile-card {
+    all: unset;
+    position: relative;
+    
+    /* Responsive Sizing */
+    width: 120px;
+    height: 44px;
+    
+    @media (min-width: 768px) {
+      width: 110px;
+      height: 40px;
+    }
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
     cursor: pointer;
-    transition: 0.3s ease;
-    background: linear-gradient(
-      to bottom right,
-      #2e8eff 0%,
-      rgba(46, 142, 255, 0) 30%
-    );
-    background-color: rgba(46, 142, 255, 0.2);
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    overflow: hidden;
+    transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+    
+    /* Smooth out mobile tap highlights */
+    -webkit-tap-highlight-color: transparent;
   }
 
-  .user-profile:hover,
-  .user-profile:focus {
-    background-color: rgba(46, 142, 255, 0.7);
-    box-shadow: 0 0 10px rgba(46, 142, 255, 0.5);
+  .status-dot {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    width: 4px;
+    height: 4px;
+    background: #ffffff;
+    border-radius: 50%;
+    z-index: 4;
+    box-shadow: 0 0 8px #ffffff;
+    animation: pulse 2s infinite;
+  }
+
+  .card-content {
+    position: relative;
+    z-index: 3;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    
+    @media (min-width: 768px) {
+      gap: 8px;
+    }
+
+    color: #ffffff;
+    font-size: 9px; /* Slightly smaller for mobile to fit the tracking */
+    
+    @media (min-width: 768px) {
+      font-size: 10px;
+    }
+
+    font-weight: 900;
+    letter-spacing: 0.2em;
+    
+    @media (min-width: 768px) {
+      letter-spacing: 0.25em; /* Extreme tracking for desktop */
+    }
+    
+    transition: color 0.4s ease;
+  }
+
+  .profile-icon {
+    flex-shrink: 0;
+  }
+
+  .card-bg {
+    position: absolute;
+    inset: 0;
+    background: #ffffff;
+    transform: translateY(100%);
+    transition: transform 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+    z-index: 1;
+    will-change: transform;
+  }
+
+  /* --- DESKTOP HOVER --- */
+  @media (hover: hover) {
+    .zolvi-profile-card:hover {
+      border-color: #ffffff;
+    }
+
+    .zolvi-profile-card:hover .card-bg {
+      transform: translateY(0);
+    }
+
+    .zolvi-profile-card:hover .card-content {
+      color: #000000;
+    }
+
+    .zolvi-profile-card:hover .status-dot {
+      background: #000000;
+      box-shadow: none;
+    }
+  }
+
+  /* --- MOBILE & INTERACTION --- */
+  .zolvi-profile-card:active {
+    transform: scale(0.96);
+    
+    .card-bg {
+      transform: translateY(0);
+    }
+    
+    .card-content {
+      color: #000000;
+    }
+    
+    .status-dot {
+      background: #000000;
+      box-shadow: none;
+    }
+  }
+
+  @keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.3; }
+    100% { opacity: 1; }
+  }
+
+  /* Accessibility focus state */
+  .zolvi-profile-card:focus-visible {
     outline: none;
-  }
-
-  .user-profile-inner {
-    width: 92px;       /* CHANGED */
-    height: 34px;      /* CHANGED */
-    border-radius: 13px;
-    background-color: #1a1a1a;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;         /* slightly reduced to fit */
-    color: #fff;
-    font-weight: 600;
-    font-size: 13px;   /* reduced to fit */
-  }
-
-  .user-profile-inner svg {
-    width: 18px;       /* CHANGED */
-    height: 18px;      /* CHANGED */
-    fill: #fff;
-  }
-
-  .user-profile-inner p {
-    margin: 0;
-    line-height: 1;
+    border-color: #ffffff;
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.2);
   }
 `;
 

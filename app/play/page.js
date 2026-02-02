@@ -1,7 +1,7 @@
 "use client";
-import React, { useState, useEffect, useRef } from 'react';
-import styled, { keyframes } from 'styled-components';
-import { Zap, Loader2, Trophy, RefreshCcw, User, Hash, Play, CheckCircle2, XCircle, Timer } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import styled, { keyframes, css } from 'styled-components';
+import { Zap, Loader2, Trophy, RefreshCcw, User, Hash, CheckCircle2, XCircle, Timer, ChevronRight, ShieldAlert } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
 
 const PlayQuiz = () => {
@@ -20,18 +20,16 @@ const PlayQuiz = () => {
         quizId: ''
     });
 
+    // Protection & URL Logic
     useEffect(() => {
         const handleContextMenu = (e) => e.preventDefault();
         const handleKeyDown = (e) => {
             if (
                 e.ctrlKey && (e.key === 'c' || e.key === 'u' || e.key === 's' || e.key === 'p') || 
-                e.key === 'F12' || 
-                (e.ctrlKey && e.shiftKey && e.key === 'I') || 
-                (e.ctrlKey && e.shiftKey && e.key === 'J')
+                e.key === 'F12' || (e.ctrlKey && e.shiftKey && e.key === 'I')
             ) {
                 e.preventDefault();
-                toast.error("Copying content is disabled for this quiz!");
-                return false;
+                toast.error("SYSTEM PROTECTION ACTIVE");
             }
         };
 
@@ -40,11 +38,7 @@ const PlayQuiz = () => {
 
         const params = new URLSearchParams(window.location.search);
         const idFromUrl = params.get('id') || params.get('quizId');
-        
-        if (idFromUrl) {
-            setJoinData(prev => ({ ...prev, quizId: idFromUrl }));
-            toast.success("Quiz ID captured from link!");
-        }
+        if (idFromUrl) setJoinData(prev => ({ ...prev, quizId: idFromUrl }));
 
         return () => {
             document.removeEventListener('contextmenu', handleContextMenu);
@@ -52,39 +46,33 @@ const PlayQuiz = () => {
         };
     }, []);
 
+    // Timer Logic
     useEffect(() => {
-        // If secondsPerQuestion is 0, we disable the countdown logic
         if (!quizData || isSubmitted || secondsPerQuestion === 0) return;
-
         if (timeLeft === 0) {
             handleNextQuestion();
             return;
         }
-
-        const timer = setInterval(() => {
-            setTimeLeft((prev) => prev - 1);
-        }, 1000);
-
+        const timer = setInterval(() => setTimeLeft((prev) => prev - 1), 1000);
         return () => clearInterval(timer);
     }, [timeLeft, quizData, isSubmitted, secondsPerQuestion]);
 
     const handleNextQuestion = () => {
         const isLastQuestion = currentQuestionIdx === quizData.questions.length - 1;
-        
         if (isLastQuestion) {
             handleSubmitExam();
         } else {
             setCurrentQuestionIdx(prev => prev + 1);
             setTimeLeft(secondsPerQuestion); 
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
     };
 
     const handleJoinQuiz = async () => {
         if (!joinData.participantName || !joinData.quizId) {
-            toast.error("Please enter both Name and Quiz ID");
+            toast.error("CREDENTIALS REQUIRED");
             return;
         }
-
         setIsLoading(true);
         try {
             const configRes = await fetch(`https://quiz-krida.onrender.com/Logged/Preview/${joinData.quizId}`, {
@@ -95,7 +83,7 @@ const PlayQuiz = () => {
             let dynamicTime = 60; 
             if (configRes.ok) {
                 const configData = await configRes.json();
-                if (configData.quiz && configData.quiz.timePerQ !== undefined) {
+                if (configData.quiz?.timePerQ) {
                     dynamicTime = parseInt(configData.quiz.timePerQ) * 60;
                     setSecondsPerQuestion(dynamicTime);
                 }
@@ -103,24 +91,16 @@ const PlayQuiz = () => {
 
             const response = await fetch(`https://quiz-krida.onrender.com/Play/${joinData.quizId}/${joinData.participantName}`, {
                 method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'ngrok-skip-browser-warning': '69420',
-                },
+                headers: { 'ngrok-skip-browser-warning': '69420' },
             });
 
-            if (!response.ok) throw new Error(`Quiz not Started Yet`);
+            if (!response.ok) throw new Error(`ACCESS DENIED: Quiz inactive.`);
 
             const data = await response.json();
-            if (!data.questions || data.questions.length === 0) {
-                throw new Error("This quiz has no questions.");
-            }
-
             setQuizData(data);
             setTimeLeft(dynamicTime); 
-            toast.success(`Joined: ${data.quiz.quizTitle}`);
+            toast.success(`CONNECTION ESTABLISHED`);
         } catch (error) {
-            console.error("Fetch Error:", error);
             toast.error(error.message);
         } finally {
             setIsLoading(false);
@@ -134,14 +114,9 @@ const PlayQuiz = () => {
 
     const handleSubmitExam = async () => {
         const questions = quizData.questions;
-
         let currentScore = 0;
         questions.forEach((q, idx) => {
-            const correctKey = q.correctOpt; 
-            const correctTextValue = q[correctKey]; 
-            if (userAnswers[idx] === correctTextValue) {
-                currentScore++;
-            }
+            if (userAnswers[idx] === q[q.correctOpt]) currentScore++;
         });
 
         const finalSubmission = {
@@ -155,24 +130,17 @@ const PlayQuiz = () => {
         try {
             const response = await fetch('https://quiz-krida.onrender.com/Play/Submit', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'ngrok-skip-browser-warning': '69420',
-                },
+                headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': '69420' },
                 body: JSON.stringify(finalSubmission)
             });
 
             if (response.ok) {
                 setScore(currentScore);
                 setIsSubmitted(true);
-                toast.success("Result recorded on server!");
+                toast.success("DATA SYNCED");
                 window.scrollTo({ top: 0, behavior: 'smooth' });
-            } else {
-                const errorText = await response.text();
-                throw new Error(errorText || `Submission failed with status ${response.status}`);
-            }
+            } else throw new Error("SUBMISSION FAILED");
         } catch (error) {
-            console.error("Submission Error:", error);
             toast.error(error.message);
         } finally {
             setIsLoading(false);
@@ -180,241 +148,348 @@ const PlayQuiz = () => {
     };
 
     return (
-        <PageContainer style={{ userSelect: 'none', WebkitUserSelect: 'none' }}>
-            <Toaster position="top-center" />
+        <PageContainer>
+            <Toaster toastOptions={{ style: { background: '#0a0a0a', color: '#fff', border: '1px solid #222' } }} />
             
             {!quizData ? (
-                <GlassCard>
-                    <Header>
-                        <div className="icon-badge"><Play size={24} /></div>
-                        <div>
-                            <h2>Join Quiz Session</h2>
-                            <p>Enter your details to retrieve the quiz.</p>
-                        </div>
-                    </Header>
+                <EntryWrapper>
+                    <StatusTag><ShieldAlert size={12}/> ENCRYPTED SESSION</StatusTag>
+                    <ZolviEntryCard>
+                        <Header>
+                            <div className="icon-box"><Zap size={24} fill="currentColor" /></div>
+                            <div>
+                                <h2>ARENA ACCESS</h2>
+                                <p>INITIALIZE YOUR SESSION</p>
+                            </div>
+                        </Header>
 
-                    <FormGrid>
-                        <InputGroup>
-                            <label><User size={14} /> Full Name</label>
-                            <input 
-                                type="text" 
-                                placeholder="e.g. Ketan Bidave" 
-                                value={joinData.participantName}
-                                onChange={(e) => setJoinData({...joinData, participantName: e.target.value})}
-                            />
-                        </InputGroup>
-
-                        <InputGroup>
-                            <label><Hash size={14} /> Quiz ID</label>
-                            <input 
-                                type="number" 
-                                placeholder="Enter Numeric ID" 
-                                value={joinData.quizId}
-                                onChange={(e) => setJoinData({...joinData, quizId: e.target.value})}
-                            />
-                        </InputGroup>
-
-                        <PrimaryButton onClick={handleJoinQuiz} disabled={isLoading}>
-                            {isLoading ? <Loader2 className="spinner" /> : "Verify & Access Quiz"}
-                        </PrimaryButton>
-                    </FormGrid>
-                </GlassCard>
-            ) : (
-                <ResultContainer>
-                    <ResultHeader>
-                        <div className="flex-row-header">
-                            {/* Hide the timer badge if secondsPerQuestion is 0 */}
-                            {(secondsPerQuestion > 0 || isSubmitted) && (
-                                <div className={isSubmitted ? "score-badge" : "success-badge"}>
-                                    {isSubmitted ? <Trophy size={16} /> : <Timer size={16} />}
-                                    {isSubmitted 
-                                        ? `Final Score: ${score} / ${quizData.questions.length}` 
-                                        : `Time Remaining: ${timeLeft}s`}
+                        <FormGrid>
+                            <InputGroup>
+                                <label>PARTICIPANT NAME</label>
+                                <div className="input-wrapper">
+                                    <User size={16} className="input-icon" />
+                                    <input 
+                                        type="text" 
+                                        placeholder="Enter full name..." 
+                                        value={joinData.participantName}
+                                        onChange={(e) => setJoinData({...joinData, participantName: e.target.value})}
+                                    />
                                 </div>
-                            )}
-                            <h2>{isSubmitted ? "Performance Summary" : quizData.quiz.quizTitle}</h2>
+                            </InputGroup>
+
+                            <InputGroup>
+                                <label>SESSION ID</label>
+                                <div className="input-wrapper">
+                                    <Hash size={16} className="input-icon" />
+                                    <input 
+                                        type="number" 
+                                        placeholder="000000" 
+                                        value={joinData.quizId}
+                                        onChange={(e) => setJoinData({...joinData, quizId: e.target.value})}
+                                    />
+                                </div>
+                            </InputGroup>
+
+                            <EntryButton onClick={handleJoinQuiz} disabled={isLoading}>
+                                {isLoading ? <Loader2 className="spinner" /> : "ENTER ARENA"}
+                            </EntryButton>
+                        </FormGrid>
+                    </ZolviEntryCard>
+                </EntryWrapper>
+            ) : (
+                <QuizWrapper>
+                    <QuizHeader>
+                        <div className="top-meta">
+                            <span className="q-count">QUESTION {currentQuestionIdx + 1}/{quizData.questions.length}</span>
+                            <div className={isSubmitted ? "status-pill score" : "status-pill timer"}>
+                                {isSubmitted ? <Trophy size={14} /> : <Timer size={14} />}
+                                {isSubmitted ? `SCORE: ${score}/${quizData.questions.length}` : `${timeLeft}s`}
+                            </div>
                         </div>
-                        {isSubmitted && (
-                            <button className="reset-btn" onClick={() => window.location.reload()}>
-                                <RefreshCcw size={16} /> New Quiz
-                            </button>
-                        )}
-                    </ResultHeader>
-                    
-                    {/* Hide the timer bar if secondsPerQuestion is 0 */}
-                    {!isSubmitted && secondsPerQuestion > 0 && (
-                        <TimerBarContainer>
-                            <TimerBarFill progress={(timeLeft / secondsPerQuestion) * 100} />
-                        </TimerBarContainer>
+                        <h2>{isSubmitted ? "POST-SESSION ANALYSIS" : quizData.quiz.quizTitle}</h2>
+                    </QuizHeader>
+
+                    {!isSubmitted && (
+                        <ProgressBarContainer>
+                            <ProgressFill progress={(timeLeft / secondsPerQuestion) * 100} />
+                        </ProgressBarContainer>
                     )}
 
-                    <QuestionGrid>
+                    <ContentArea>
                         {quizData.questions.map((q, idx) => {
                             if (!isSubmitted && idx !== currentQuestionIdx) return null;
-
                             return (
-                                <QuestionCard key={idx} style={{ animationDelay: `0.1s` }}>
-                                    <div className="q-num">Question {idx + 1} of {quizData.questions.length}</div>
+                                <QuestionCard key={idx} isSubmitted={isSubmitted}>
+                                    <div className="q-label">SYSTEM_QUERY_{idx + 1}</div>
                                     <h3>{q.question}</h3>
-                                    <div className="options-list">
+                                    <OptionsGrid>
                                         {["opt1", "opt2", "opt3", "opt4"].map((optKey) => {
                                             const optValue = q[optKey];
                                             const isSelected = userAnswers[idx] === optValue;
                                             const isCorrect = optValue === q[q.correctOpt];
                                             
-                                            let statusClass = "";
+                                            let variant = "default";
                                             if (isSubmitted) {
-                                                if (isCorrect) statusClass = "correct";
-                                                else if (isSelected && !isCorrect) statusClass = "wrong";
-                                            } else if (isSelected) {
-                                                statusClass = "selected";
-                                            }
+                                                if (isCorrect) variant = "correct";
+                                                else if (isSelected) variant = "wrong";
+                                            } else if (isSelected) variant = "selected";
 
                                             return (
-                                                <div 
+                                                <OptionButton 
                                                     key={optKey} 
-                                                    className={`opt ${statusClass}`}
+                                                    variant={variant}
                                                     onClick={() => handleSelectOption(idx, optValue)}
                                                 >
-                                                    <div className="checkbox">
-                                                        {isSelected && <div className="inner-dot" />}
-                                                    </div>
+                                                    <span className="opt-indicator" />
                                                     <span className="opt-text">{optValue}</span>
-                                                    {isSubmitted && isCorrect && <CheckCircle2 size={18} className="status-icon" />}
-                                                    {isSubmitted && isSelected && !isCorrect && <XCircle size={18} className="status-icon" />}
-                                                </div>
+                                                    {isSubmitted && isCorrect && <CheckCircle2 size={18} className="res-icon" />}
+                                                    {isSubmitted && isSelected && !isCorrect && <XCircle size={18} className="res-icon" />}
+                                                </OptionButton>
                                             );
                                         })}
-                                    </div>
+                                    </OptionsGrid>
                                 </QuestionCard>
                             );
                         })}
-                    </QuestionGrid>
+                    </ContentArea>
 
-                    {!isSubmitted && (
-                        <StickyFooter>
-                            <SubmitButton onClick={handleNextQuestion} disabled={isLoading}>
-                                {currentQuestionIdx === quizData.questions.length - 1 ? "Submit Final Exam" : "Next Question"}
-                            </SubmitButton>
-                        </StickyFooter>
-                    )}
-                </ResultContainer>
+                    <FooterActions>
+                        {!isSubmitted ? (
+                            <PrimaryButton onClick={handleNextQuestion} disabled={isLoading}>
+                                {currentQuestionIdx === quizData.questions.length - 1 ? "FINISH" : "NEXT"}
+                                <ChevronRight size={20} />
+                            </PrimaryButton>
+                        ) : (
+                            <SecondaryButton onClick={() => window.location.reload()}>
+                                <RefreshCcw size={18} /> EXIT ARENA
+                            </SecondaryButton>
+                        )}
+                    </FooterActions>
+                </QuizWrapper>
             )}
         </PageContainer>
     );
 };
 
-// --- Styled Components ---
-const TimerBarContainer = styled.div`
-    width: 100%;
-    height: 6px;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 10px;
-    margin-bottom: 20px;
-    overflow: hidden;
-`;
-
-const TimerBarFill = styled.div`
-    height: 100%;
-    width: ${props => props.progress}%;
-    background: linear-gradient(90deg, #4f46e5, #7c3aed);
-    transition: width 1s linear;
-`;
-
+// --- Animations ---
 const spin = keyframes` from { transform: rotate(0deg); } to { transform: rotate(360deg); } `;
-const springUp = keyframes` from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } `;
+const fadeIn = keyframes` from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } `;
 
+// --- Responsive Styled Components ---
 const PageContainer = styled.div`
-    min-height: 80vh; 
-    padding: 40px 15px; 
-    display: flex; 
-    justify-content: center;
-    color: #e2e2e2; 
-    font-family: 'Inter', sans-serif; 
-    background: transparent; 
-    position: relative; 
-    overflow-x: hidden;
-    @media (max-width: 768px) { padding: 20px 12px; }
+    min-height: 100vh;
+    background: #050505;
+    color: #fff;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    user-select: none;
+
+    @media (min-width: 768px) {
+        padding: 60px 40px;
+    }
 `;
 
-const GlassCard = styled.div`
-    width: 100%; 
-    max-width: 440px; 
-    background: rgba(255, 255, 255, 0.03); 
-    backdrop-filter: blur(40px) saturate(150%);
-    -webkit-backdrop-filter: blur(40px) saturate(150%);
-    border: 1px solid rgba(255, 255, 255, 0.1); 
-    border-radius: 32px; 
-    padding: 30px; 
-    z-index: 1;
-    animation: ${springUp} 0.6s cubic-bezier(0.16, 1, 0.3, 1); 
-    height: fit-content;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-    @media (max-width: 480px) { padding: 24px; border-radius: 24px; }
+const EntryWrapper = styled.div`
+    width: 100%;
+    max-width: 440px;
+    margin-top: 10vh;
+    animation: ${fadeIn} 0.6s ease-out;
+`;
+
+const StatusTag = styled.div`
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 2px;
+    color: #444;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+`;
+
+const ZolviEntryCard = styled.div`
+    background: #000;
+    border: 1px solid #1a1a1a;
+    padding: 30px;
+    @media (min-width: 768px) { padding: 40px; }
 `;
 
 const Header = styled.div`
-    display: flex; flex-direction: column; align-items: center; text-align: center; gap: 15px; margin-bottom: 35px;
-    .icon-badge { width: 60px; height: 60px; background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); border-radius: 20px; display: flex; align-items: center; justify-content: center; color: white; box-shadow: 0 8px 30px rgba(79, 70, 229, 0.4); }
-    h2 { margin: 0; font-size: 1.6rem; font-weight: 800; color: #fff; letter-spacing: -0.02em; }
-    p { margin: 0; color: #a1a1aa; font-size: 0.95rem; }
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 40px;
+    .icon-box { 
+        width: 50px; height: 50px; border: 1px solid #fff; 
+        display: flex; align-items: center; justify-content: center;
+    }
+    h2 { font-size: 1.25rem; font-weight: 900; letter-spacing: 1px; margin: 0; }
+    p { font-size: 0.7rem; color: #555; margin: 4px 0 0; font-weight: 600; }
 `;
 
-const FormGrid = styled.div` display: flex; flex-direction: column; gap: 20px; `;
+const FormGrid = styled.div` display: flex; flex-direction: column; gap: 24px; `;
 
 const InputGroup = styled.div`
-    display: flex; flex-direction: column; gap: 8px;
-    label { color: #a1a1aa; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; display: flex; align-items: center; gap: 8px; }
-    input { background: rgba(0, 0, 0, 0.2); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 14px; padding: 16px; color: #fff; font-size: 1rem; transition: all 0.2s; &:focus { outline: none; border-color: #4f46e5; background: rgba(0,0,0,0.4); box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1); } }
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    label { font-size: 10px; font-weight: 800; color: #555; letter-spacing: 1px; }
+    .input-wrapper {
+        position: relative;
+        display: flex;
+        align-items: center;
+        .input-icon { position: absolute; left: 16px; color: #333; }
+        input {
+            width: 100%;
+            background: #0a0a0a;
+            border: 1px solid #1a1a1a;
+            padding: 16px 16px 16px 48px;
+            color: #fff;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            &:focus { outline: none; border-color: #fff; background: #000; }
+        }
+    }
 `;
 
-const PrimaryButton = styled.button`
-    background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); color: white; border: none; padding: 18px; border-radius: 16px; font-weight: 700; font-size: 1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; transition: all 0.3s ease;
-    &:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 15px 30px rgba(79, 70, 229, 0.4); filter: brightness(1.1); }
+const EntryButton = styled.button`
+    background: #fff;
+    color: #000;
+    border: none;
+    padding: 20px;
+    font-weight: 900;
+    font-size: 13px;
+    letter-spacing: 2px;
+    cursor: pointer;
+    transition: 0.3s;
+    margin-top: 10px;
+    &:hover:not(:disabled) { background: #dcdcdc; transform: translateY(-2px); }
     &:disabled { opacity: 0.5; cursor: not-allowed; }
     .spinner { animation: ${spin} 1s linear infinite; }
 `;
 
-const ResultContainer = styled.div` width: 100%; max-width: 700px; z-index: 1; padding-bottom: 140px; `;
-
-const ResultHeader = styled.div`
-    display: flex; flex-direction: column; gap: 15px; margin-bottom: 40px;
-    .flex-row-header { display: flex; align-items: center; justify-content: space-between; gap: 15px; width: 100%; }
-    .success-badge, .score-badge { backdrop-filter: blur(10px); padding: 8px 16px; border-radius: 100px; font-size: 0.8rem; font-weight: 700; display: flex; align-items: center; gap: 8px; white-space: nowrap; }
-    .success-badge { background: rgba(34, 197, 94, 0.15); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.3); }
-    .score-badge { background: rgba(234, 179, 8, 0.15); color: #facc15; border: 1px solid rgba(234, 179, 8, 0.3); }
-    h2 { margin: 0; font-size: 1.8rem; font-weight: 800; color: #fff; text-align: right; }
-    .reset-btn { align-self: flex-start; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(10px); color: #fff; padding: 10px 20px; border-radius: 12px; cursor: pointer; display: flex; align-items: center; gap: 8px; font-weight: 600; transition: 0.2s; &:hover { background: rgba(255,255,255,0.1); } }
-    @media (max-width: 480px) { .flex-row-header { flex-direction: row; align-items: center; } h2 { font-size: 1.2rem; } }
+const QuizWrapper = styled.div`
+    width: 100%;
+    max-width: 800px;
+    animation: ${fadeIn} 0.5s ease-out;
 `;
 
-const QuestionGrid = styled.div` display: flex; flex-direction: column; gap: 20px; `;
+const QuizHeader = styled.div`
+    margin-bottom: 30px;
+    .top-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+        .q-count { font-size: 11px; font-weight: 800; color: #555; letter-spacing: 1px; }
+        .status-pill {
+            display: flex; align-items: center; gap: 8px;
+            padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 700;
+            &.timer { border: 1px solid #222; color: #fff; }
+            &.score { background: #fff; color: #000; }
+        }
+    }
+    h2 { font-size: 1.5rem; font-weight: 900; margin: 0; line-height: 1.2; text-transform: uppercase; }
+`;
+
+const ProgressBarContainer = styled.div` width: 100%; height: 4px; background: #111; margin-bottom: 40px; `;
+const ProgressFill = styled.div` height: 100%; width: ${props => props.progress}%; background: #fff; transition: width 1s linear; `;
+
+const ContentArea = styled.div` margin-bottom: 40px; `;
 
 const QuestionCard = styled.div`
-    background: rgba(255, 255, 255, 0.02); backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px); border: 1px solid rgba(255, 255, 255, 0.08); padding: 25px; border-radius: 24px; animation: ${springUp} 0.5s ease-out forwards;
-    .q-num { color: #818cf8; font-size: 0.75rem; font-weight: 800; text-transform: uppercase; margin-bottom: 10px; opacity: 0.8; }
-    h3 { font-size: 1.2rem; font-weight: 600; margin-bottom: 25px; color: #fff; line-height: 1.5; }
-    .options-list { display: flex; flex-direction: column; gap: 10px; }
-    .opt { padding: 15px 18px; border-radius: 16px; background: rgba(0, 0, 0, 0.2); border: 1px solid rgba(255, 255, 255, 0.05); font-size: 0.95rem; color: #d1d1d6; display: flex; align-items: center; gap: 14px; cursor: pointer; transition: all 0.2s ease;
-        &:hover:not(.correct):not(.wrong) { border-color: rgba(255, 255, 255, 0.2); background: rgba(255, 255, 255, 0.05); transform: scale(1.01); }
-        &.selected { border-color: #4f46e5; background: rgba(79, 70, 229, 0.1); color: #fff; }
-        &.correct { border-color: #22c55e; background: rgba(34, 197, 94, 0.15); color: #4ade80; font-weight: 600; }
-        &.wrong { border-color: #ef4444; background: rgba(239, 68, 68, 0.15); color: #f87171; }
-        .checkbox { width: 20px; height: 20px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-        &.selected .checkbox { border-color: #4f46e5; }
-        &.correct .checkbox { border-color: #22c55e; background: #22c55e; }
-        .inner-dot { width: 10px; height: 10px; border-radius: 50%; background: #4f46e5; }
-        .status-icon { margin-left: auto; }
-    }
-    @media (max-width: 480px) { padding: 20px; h3 { font-size: 1.1rem; } .opt { font-size: 0.9rem; } }
+    .q-label { font-size: 10px; font-weight: 800; color: #444; margin-bottom: 12px; }
+    h3 { font-size: 1.25rem; font-weight: 700; line-height: 1.5; margin-bottom: 30px; color: #efefef; }
+    
+    ${props => props.isSubmitted && css`
+        margin-bottom: 60px;
+        border-bottom: 1px solid #111;
+        padding-bottom: 40px;
+    `}
 `;
 
-const StickyFooter = styled.div`
-    position: fixed; bottom: 0; left: 0; width: 100%; padding: 25px 15px; background: linear-gradient(to top, rgba(0,0,0,0.9) 60%, transparent); backdrop-filter: blur(10px); display: flex; justify-content: center; z-index: 10;
+const OptionsGrid = styled.div`
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+    @media (min-width: 600px) { grid-template-columns: 1fr 1fr; }
 `;
 
-const SubmitButton = styled(PrimaryButton)` 
-    width: 100%; max-width: 400px; padding: 16px; border-radius: 100px; font-size: 1.1rem; box-shadow: 0 15px 40px -10px rgba(79, 70, 229, 0.6); 
+const OptionButton = styled.div`
+    padding: 20px;
+    background: #0a0a0a;
+    border: 1px solid #1a1a1a;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+
+    .opt-indicator { width: 10px; height: 10px; border: 1px solid #333; transition: 0.2s; }
+    .opt-text { font-size: 14px; font-weight: 500; color: #888; flex: 1; }
+
+    &:hover { border-color: #333; background: #0f0f0f; }
+
+    ${props => props.variant === "selected" && css`
+        border-color: #fff; background: #111;
+        .opt-indicator { background: #fff; border-color: #fff; }
+        .opt-text { color: #fff; }
+    `}
+
+    ${props => props.variant === "correct" && css`
+        border-color: #fff; background: #000;
+        .opt-indicator { background: #fff; border-color: #fff; }
+        .opt-text { color: #fff; font-weight: 700; }
+        .res-icon { color: #fff; }
+    `}
+
+    ${props => props.variant === "wrong" && css`
+        border-color: #331111; opacity: 0.6;
+        .opt-text { color: #555; }
+        .res-icon { color: #ff4444; }
+    `}
+`;
+
+const FooterActions = styled.div`
+    display: flex;
+    justify-content: center;
+    padding-top: 20px;
+`;
+
+const PrimaryButton = styled.button`
+    width: 100%;
+    background: #fff;
+    color: #000;
+    border: none;
+    padding: 18px 40px;
+    font-weight: 900;
+    letter-spacing: 2px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    transition: 0.3s;
+    &:hover { background: #e0e0e0; transform: translateY(-2px); }
+`;
+
+const SecondaryButton = styled.button`
+    background: transparent;
+    border: 1px solid #222;
+    color: #666;
+    padding: 12px 24px;
+    font-size: 12px;
+    font-weight: 800;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: 0.2s;
+    &:hover { border-color: #fff; color: #fff; }
 `;
 
 export default PlayQuiz;

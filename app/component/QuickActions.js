@@ -1,12 +1,14 @@
 "use client";
 import React, { useState } from 'react';
-import styled, { keyframes } from 'styled-components';
-import { Play,Globe, PlusCircle, Sparkles, Radio, Loader2 } from 'lucide-react';
+import styled from 'styled-components';
+import { Play, Globe, PlusCircle, Sparkles, Radio, Loader2, ArrowUpRight } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 const QuickActions = () => {
   const router = useRouter();
   const [loadingIndex, setLoadingIndex] = useState(null);
+  
+  // Logic remains untouched
   const isLoggedIn = typeof window !== 'undefined' && !!localStorage.getItem("token");
 
   const handleAction = (action, index) => {
@@ -17,257 +19,297 @@ const QuickActions = () => {
   };
 
   const actions = [
-    { 
-      title: "Play Quiz", 
-      desc: "Instantly join a game using a unique room code and compete with friends.", 
-      icon: <Play size={26} />, 
-      color: "#6366f1", 
-      onClick: () => router.push('/play') 
-    },
-    { 
-      title: "Create Quiz", 
-      desc: "Design your own custom questions, set timers, and host your own sessions.", 
-      icon: <PlusCircle size={26} />, 
-      color: "#2d8cf0", 
-      onClick: () => !isLoggedIn ? router.push('/login') : router.push('/create') 
-    },
-    { 
-      title: "Global Topics", 
-      desc: "Real-time global challenges happening right now. Join and climb the leaderboard.", 
-      icon: <Radio size={26} />, 
-      color: "#f43f5e", 
-      onClick: () => router.push('/browseQuizzes') 
-    },
-    { 
-      title: "Quiz by AI", 
-      desc: "Harness the power of AI to generate a complete quiz from any topic.", 
-      icon: <Sparkles size={26} />, 
-      color: "#9b59b6", 
-      onClick: () => router.push('/generate-ai') 
-    },
-    { 
-      title: "Quizz Gallery", 
-      desc: "Explore a massive library of community-created quizzes across all categories.", 
-      icon: <Globe size={26} />, 
-      color: "#10b981", 
-      onClick: () => router.push('/public-library') 
-    },
-    { 
-      title: "Quick Quize Maker", 
-      desc: "Create a quiz in seconds using AI-generated content.", 
-      icon: <Sparkles size={26} />, 
-      color: "#f59e0b", 
-      onClick: () => router.push('/quick-quiz-maker') 
-    }
+    { title: "PLAY QUIZ", desc: "Join an arena using a unique room code and compete in real-time.", icon: <Play size={20} />, onClick: () => router.push('/play') },
+    { title: "CREATE QUIZ", desc: "Design custom logic, set countdowns, and curate your own sessions.", icon: <PlusCircle size={20} />, onClick: () => !isLoggedIn ? router.push('/login') : router.push('/create') },
+    { title: "QUICK MAKER", desc: "Generate high-stakes challenges in seconds using our AI engine.", icon: <Sparkles size={20} />, onClick: () => router.push('/quick-quiz-maker') },
+    { title: "QUIZ BY AI", desc: "Harness deep-learning to transform any topic into a complete quiz.", icon: <Sparkles size={20} />, onClick: () => router.push('/generate-ai') },
+    { title: "PUBLIC GALLERY", desc: "Explore an expansive library of community-vetted challenges.", icon: <Globe size={20} />, onClick: () => router.push('/public-library') },
+    { title: "GLOBAL TOPICS", desc: "Real-time challenges happening now. Secure your digital legacy.", icon: <Radio size={20} />, onClick: () => router.push('/browseQuizzes') },
   ];
 
   return (
-    <Container>
-      {actions.map((action, index) => (
-        <Card 
-          key={index} 
-          color={action.color} 
-          style={{ "--i": index }}
-          onClick={() => handleAction(action, index)}
-        >
-          {/* Desktop Glass Layer (Hidden on mobile via CSS) */}
-          <div className="glass-layer" />
-          
-          <div className="content-wrapper">
-            <div className="icon-box">{action.icon}</div>
-            <div className="text-content">
-              <h3>{action.title}</h3>
-              <p>{action.desc}</p>
+    <Wrapper>
+      <GridContainer>
+        {actions.map((action, index) => (
+          <ZolviCard 
+            key={index} 
+            onClick={() => handleAction(action, index)}
+          >
+            {/* Background High-Tech Accents */}
+            <div className="bg-grid" />
+            <div className="glow-point" />
+            
+            <div className="card-inner">
+              <div className="card-header">
+                <div className="status-indicator">
+                  <div className="dot" />
+                  <span className="index-num">SYSTEM_0{index + 1}</span>
+                </div>
+                <div className="icon-wrap">{action.icon}</div>
+              </div>
+              
+              <div className="card-body">
+                <h3>{action.title}</h3>
+                <p>{action.desc}</p>
+              </div>
+
+              <div className="card-footer">
+                {loadingIndex === index ? (
+                  <div className="loading-state">
+                    <Loader2 className="spinner" size={16} />
+                    <span>LINKING...</span>
+                  </div>
+                ) : (
+                  <div className="action-trigger">
+                    <span className="action-text">INITIALIZE_PROCEDURE</span>
+                    <div className="arrow-box">
+                      <ArrowUpRight size={14} />
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
-            <button className="go-button">
-              {loadingIndex === index ? (
-                <Loader2 className="spinner" size={18} />
-              ) : (
-                "Start"
-              )}
-            </button>
-          </div>
-        </Card>
-      ))}
-    </Container>
+            
+            {/* The "Liquid/Laser" Border Scan */}
+            <div className="scan-line" />
+            <div className="corner-accent top-right" />
+            <div className="corner-accent bottom-left" />
+          </ZolviCard>
+        ))}
+      </GridContainer>
+    </Wrapper>
   );
 };
 
-/* --- ANIMATIONS --- */
-const float = keyframes`
-  0%, 100% { transform: translateY(0) rotate(0deg); }
-  33% { transform: translateY(-8px) rotate(-1deg); }
-  66% { transform: translateY(-4px) rotate(1deg); }
-`;
-
-const spin = keyframes`
-  to { transform: rotate(360deg); }
-`;
-
 /* --- STYLED COMPONENTS --- */
-const Container = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 25px;
-  width: 100%;
-  max-width: 1200px;
-  margin: 40px auto;
-  padding: 0 20px;
-  margin-top: -60px;
 
-  @media (min-width: 769px) {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex-wrap: wrap;
-    padding: 60px 20px;
-    perspective: 1000px;
-  }
+const Wrapper = styled.div`
+  width: 100%;
+  padding: 20px;
+  @media (min-width: 768px) { padding: 60px 20px; }
 `;
 
-const Card = styled.div`
-  /* MOBILE STYLES */
-  border: 2px solid #fefefe;
-  box-shadow: 6px 6px 0px #fefefe;
-  border-radius: 10px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  cursor: pointer;
-  transition: all 0.2s ease;
+const GridContainer = styled.div`
+  display: grid;
+  /* Modern Responsive Grid Logic */
+  grid-template-columns: 1fr;
+  @media (min-width: 640px) { grid-template-columns: repeat(2, 1fr); }
+  @media (min-width: 1024px) { grid-template-columns: repeat(3, 1fr); }
+  
+  gap: 1px; 
+  background: rgba(255, 255, 255, 0.07); 
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  max-width: 1400px;
+  margin: 0 auto;
+  box-shadow: 0 0 40px rgba(0,0,0,0.5);
+`;
+
+const ZolviCard = styled.div`
   position: relative;
-  background: transparent;
-  min-height: 380px; 
+  background: #000;
   padding: 30px;
+  height: 280px;
+  @media (min-width: 768px) {
+    padding: 45px;
+    height: 340px;
+  }
+  cursor: pointer;
+  overflow: hidden;
+  transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+  -webkit-tap-highlight-color: transparent;
 
-  .glass-layer { display: none; }
+  /* Cyber Grid Background */
+  .bg-grid {
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+    background-size: 20px 20px;
+    opacity: 0.3;
+    transition: opacity 0.5s ease;
+  }
 
-  .content-wrapper {
+  .glow-point {
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.03) 0%, transparent 70%);
+    opacity: 0;
+    transition: opacity 0.8s ease;
+  }
+
+  .card-inner {
+    height: 100%;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    justify-content: space-between; /* Spreads icon, text, and button evenly */
-    height: 100%;
-    width: 100%;
-    gap: 15px;
+    justify-content: space-between;
+    position: relative;
+    z-index: 5;
   }
 
-  .icon-box {
-    color: ${props => props.color};
-    background: rgba(255, 255, 255, 0.05);
-    width: 75px; 
-    height: 75px;
-    border-radius: 50%;
+  .card-header {
     display: flex;
+    justify-content: space-between;
     align-items: center;
-    justify-content: center;
-    border: 1px dashed ${props => props.color};
-    flex-shrink: 0;
-    margin-bottom: 0; /* Removed margin to allow flex centering */
+
+    .status-indicator {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      .dot {
+        width: 4px;
+        height: 4px;
+        background: #fff;
+        border-radius: 50%;
+        box-shadow: 0 0 8px #fff;
+      }
+    }
+
+    .index-num {
+      font-size: 10px;
+      color: #444;
+      font-weight: 800;
+      letter-spacing: 0.25em;
+    }
+
+    .icon-wrap {
+      color: #fff;
+      opacity: 0.3;
+      transform: scale(0.9);
+      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
   }
 
   h3 {
-    color: #fefefe;
-    font-size: 1.5rem;
-    margin: 10px 0;
+    font-size: 1.1rem;
+    @media (min-width: 768px) { font-size: 1.4rem; }
+    font-weight: 900;
+    letter-spacing: 0.15em;
+    color: #fff;
+    margin-bottom: 12px;
+    text-transform: uppercase;
   }
 
   p {
-    color: #7e7e7e;
-    font-size: 0.9rem;
-    line-height: 1.4;
-    margin: 0 auto;
-    max-width: 200px;
+    font-size: 0.85rem;
+    color: #666;
+    line-height: 1.6;
+    max-width: 90%;
+    transition: color 0.4s ease;
   }
 
-  .go-button {
+  .card-footer {
+    .action-trigger {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      opacity: 0.4;
+      transition: all 0.4s ease;
+    }
+
+    .action-text {
+      font-size: 10px;
+      font-weight: 900;
+      letter-spacing: 0.2em;
+      color: #fff;
+    }
+
+    .arrow-box {
+      width: 32px;
+      height: 32px;
+      border: 1px solid rgba(255,255,255,0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.4s ease;
+    }
+
+    .loading-state {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      color: #fff;
+    }
+  }
+
+  /* High-Tech Accents */
+  .corner-accent {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    border: 1px solid rgba(255,255,255,0.2);
+    opacity: 0;
+    transition: all 0.4s ease;
+  }
+  .top-right { top: 15px; right: 15px; border-left: none; border-bottom: none; }
+  .bottom-left { bottom: 15px; left: 15px; border-right: none; border-top: none; }
+
+  .scan-line {
+    position: absolute;
+    top: 0;
+    left: 0;
     width: 100%;
-    height: 45px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: transparent;
-    border: 2px solid ${props => props.color};
-    color: ${props => props.color};
-    font-weight: bold;
-    border-radius: 5px;
-    box-shadow: 4px 4px 0px ${props => props.color};
-    transition: all 0.1s;
-    cursor: pointer;
-
-    .spinner { animation: ${spin} 1s linear infinite; }
+    height: 1px;
+    background: linear-gradient(90deg, transparent, #fff, transparent);
+    opacity: 0;
+    z-index: 10;
   }
 
-  &:hover {
-    transform: translate(-2px, -2px);
-    box-shadow: 10px 10px 0px ${props => props.color};
-  }
-
-  &:active {
-    transform: translate(4px, 4px);
-    box-shadow: 2px 2px 0px ${props => props.color};
-  }
-
-  /* DESKTOP OVERRIDES */
-  @media (min-width: 769px) {
-
-    width: 270px;
-    height: 350px;
-    min-height: unset;
-    border: none;
-    box-shadow: none;
-    animation: ${float} 6s ease-in-out infinite;
-    animation-delay: calc(var(--i) * -1.2s);
-    padding: 0;
-
-    .glass-layer {
-      display: block;
-      position: absolute;
-      inset: 0;
-      background: rgba(255, 255, 255, 0.03);
-      border-radius: 24px;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      z-index: 1;
-    }
-
-    .content-wrapper {
-      padding: 25px 20px;
-      gap: 0;
-    }
-
-    .icon-box {
-      width: 55px;
-      height: 55px;
-      border-radius: 16px;
-      background: ${props => props.color}20;
-      border: 1.5px solid ${props => props.color}40;
-    }
-
-    h3 { font-size: 1.2rem; margin-top: 15px; }
-    p { color: #94a3b8; font-size: 0.8rem; }
-
-    .go-button {
-      border-radius: 12px;
-      color: white;
-      box-shadow: none;
-    }
-
+  /* --- HOVER EFFECTS --- */
+  @media (hover: hover) {
     &:hover {
-      animation-play-state: paused;
-      transform: scale(1.08) translateY(-15px);
-      box-shadow: none;
-      .glass-layer {
-        border-color: ${props => props.color};
-        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), 0 0 20px ${props => props.color}40;
+      background: #080808;
+      transform: translateY(-5px);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.8);
+
+      .bg-grid { opacity: 0.8; }
+      .glow-point { opacity: 1; }
+
+      .icon-wrap {
+        opacity: 1;
+        transform: scale(1.1) rotate(-5deg);
+        color: #fff;
       }
-      .icon-box {
-        background: ${props => props.color};
-        color: white;
+
+      .card-footer .action-trigger {
+        opacity: 1;
       }
-      .go-button { background: ${props => props.color}; }
+
+      .arrow-box {
+        background: #fff;
+        color: #000;
+        border-color: #fff;
+      }
+
+      p { color: #aaa; }
+
+      .corner-accent { opacity: 1; }
+      
+      .scan-line {
+        animation: scanLine 2.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+      }
     }
   }
+
+  /* --- MOBILE ACTIVE --- */
+  &:active {
+    transform: scale(0.98);
+    background: #111;
+  }
+
+  @keyframes scanLine {
+    0% { top: 0%; opacity: 0; }
+    10% { opacity: 1; }
+    90% { opacity: 1; }
+    100% { top: 100%; opacity: 0; }
+  }
+
+  .spinner { animation: spin 1s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
 `;
 
 export default QuickActions;

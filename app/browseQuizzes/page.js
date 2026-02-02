@@ -1,42 +1,42 @@
 "use client";
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Radio, Clock, ChevronRight, Loader2, CheckCircle2, 
   Gamepad2, Music, Film, Tv, Book, Globe, Map, 
   Zap, Beaker, Ghost, Car, PawPrint, Users, Palette, 
-  Landmark, Trophy, Cpu, Smartphone, Layout, BookOpen, Star 
+  Landmark, Trophy, Cpu, Smartphone, Layout, BookOpen, Star, RefreshCcw 
 } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
 
-/* --- ICON MAPPING LOGIC --- */
+/* --- ICON MAPPING (MONOCHROME) --- */
 const getTopicIcon = (name) => {
   const n = name.toLowerCase();
-  if (n.includes('video games')) return <Gamepad2 size={24} color="#ec4899" />;
-  if (n.includes('music')) return <Music size={24} color="#a855f7" />;
-  if (n.includes('film')) return <Film size={24} color="#3b82f6" />;
-  if (n.includes('television')) return <Tv size={24} color="#6366f1" />;
-  if (n.includes('books')) return <Book size={24} color="#f59e0b" />;
-  if (n.includes('geography')) return <Globe size={24} color="#10b981" />;
-  if (n.includes('history')) return <Landmark size={24} color="#94a3b8" />;
-  if (n.includes('politics')) return <Users size={24} color="#ef4444" />;
-  if (n.includes('art')) return <Palette size={24} color="#f472b6" />;
-  if (n.includes('celebrities')) return <Star size={24} color="#fbbf24" />;
-  if (n.includes('animals')) return <PawPrint size={24} color="#10b981" />;
-  if (n.includes('vehicles')) return <Car size={24} color="#64748b" />;
-  if (n.includes('science')) return <Beaker size={24} color="#06b6d4" />;
-  if (n.includes('gadgets')) return <Smartphone size={24} color="#6366f1" />;
-  if (n.includes('computers')) return <Cpu size={24} color="#3b82f6" />;
-  if (n.includes('mythology')) return <Zap size={24} color="#f59e0b" />;
-  if (n.includes('sports')) return <Trophy size={24} color="#fbbf24" />;
-  if (n.includes('cartoon')) return <Ghost size={24} color="#f472b6" />;
-  if (n.includes('anime')) return <Layout size={24} color="#ec4899" />;
-  return <BookOpen size={24} color="#94a3b8" />;
+  const iconProps = { size: 24, color: "#fff" };
+  if (n.includes('video games')) return <Gamepad2 {...iconProps} />;
+  if (n.includes('music')) return <Music {...iconProps} />;
+  if (n.includes('film')) return <Film {...iconProps} />;
+  if (n.includes('television')) return <Tv {...iconProps} />;
+  if (n.includes('books')) return <Book {...iconProps} />;
+  if (n.includes('geography')) return <Globe {...iconProps} />;
+  if (n.includes('history')) return <Landmark {...iconProps} />;
+  if (n.includes('politics')) return <Users {...iconProps} />;
+  if (n.includes('art')) return <Palette {...iconProps} />;
+  if (n.includes('celebrities')) return <Star {...iconProps} />;
+  if (n.includes('animals')) return <PawPrint {...iconProps} />;
+  if (n.includes('vehicles')) return <Car {...iconProps} />;
+  if (n.includes('science')) return <Beaker {...iconProps} />;
+  if (n.includes('gadgets')) return <Smartphone {...iconProps} />;
+  if (n.includes('computers')) return <Cpu {...iconProps} />;
+  if (n.includes('mythology')) return <Zap {...iconProps} />;
+  if (n.includes('sports')) return <Trophy {...iconProps} />;
+  if (n.includes('cartoon')) return <Ghost {...iconProps} />;
+  if (n.includes('anime')) return <Layout {...iconProps} />;
+  return <BookOpen {...iconProps} />;
 };
 
 const TopicQuizManager = () => {
-  // State
   const [topics, setTopics] = useState({});
   const [questions, setQuestions] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -48,18 +48,16 @@ const TopicQuizManager = () => {
 
   const BASE_URL = 'https://quizbyaiservice-production.up.railway.app';
 
-  // 1. Initial Fetch: Topics
   useEffect(() => {
     const fetchTopics = async () => {
       try {
         const response = await fetch(`${BASE_URL}/Topics`, {
           headers: { 'ngrok-skip-browser-warning': 'true' },
         });
-        if (!response.ok) throw new Error("Server Error");
         const data = await response.json();
         setTopics(data);
       } catch (err) {
-        toast.error("Failed to load topics");
+        toast.error("COMMUNICATION ERROR");
       } finally {
         setLoading(false);
       }
@@ -67,7 +65,6 @@ const TopicQuizManager = () => {
     fetchTopics();
   }, []);
 
-  // 2. Fetch Questions for Selected Topic
   const startTopicQuiz = async (id) => {
     setLoading(true);
     try {
@@ -80,13 +77,12 @@ const TopicQuizManager = () => {
       setCurrentIndex(0);
       setTimer(60);
     } catch (err) {
-      toast.error("Error fetching questions");
+      toast.error("DEPLOYMENT FAILED");
     } finally {
       setLoading(false);
     }
   };
 
-  // 3. Timer Logic & Auto-Advance
   useEffect(() => {
     let interval;
     if (gameStarted && !isFinished && timer > 0) {
@@ -108,7 +104,6 @@ const TopicQuizManager = () => {
 
   const handleAnswer = (optionText) => {
     setUserAnswers(prev => ({ ...prev, [currentIndex]: optionText }));
-    // Small delay so user sees their selection
     setTimeout(handleNext, 400); 
   };
 
@@ -120,53 +115,53 @@ const TopicQuizManager = () => {
 
   if (loading) return (
     <LoadingScreen>
-      <Loader2 className="spinner" size={40} />
-      <span>Syncing Live Topics...</span>
+      <Loader2 className="spinner" size={32} />
+      <span>INITIALIZING DATA STREAM...</span>
     </LoadingScreen>
   );
 
   return (
     <Container>
-      <Toaster position="top-center" />
+      <Toaster toastOptions={{ style: { background: '#000', color: '#fff', border: '1px solid #222', borderRadius: '0px' } }} />
       
       {!gameStarted ? (
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
           <Header>
-            <div className="live-badge"><Radio size={16} /> LIVE CHALLENGE</div>
-            <h1>Choose a Topic</h1>
-            <p>Select a category to start your live session</p>
+            <div className="live-badge"><Radio size={12} /> LIVE STREAMS</div>
+            <h1>SELECT SECTOR</h1>
+            <p>CHOOSE A DATABASE TO INITIALIZE TEST SEQUENCE</p>
           </Header>
           <TopicGrid>
             {Object.entries(topics).map(([id, name]) => (
-              <TopicCard key={id} whileHover={{ y: -5 }} onClick={() => startTopicQuiz(id)}>
+              <TopicCard key={id} onClick={() => startTopicQuiz(id)}>
                 <div className="topic-icon-box">
                   {getTopicIcon(name)}
                 </div>
                 <div className="topic-info">
-                  <h3>{name}</h3>
-                  <span className="topic-id">CATEGORY ID: {id}</span>
+                  <h3>{name.toUpperCase()}</h3>
+                  <span className="topic-id">SECTOR ID: {id}</span>
                 </div>
-                <ChevronRight size={20} className="arrow" />
+                <ChevronRight size={18} className="arrow" />
               </TopicCard>
             ))}
           </TopicGrid>
         </motion.div>
       ) : isFinished ? (
-        <ResultCard initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}>
-          <CheckCircle2 size={64} color="#10b981" />
-          <h2>Quiz Completed!</h2>
+        <ResultCard initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+          <CheckCircle2 size={48} color="#fff" />
+          <h2>SEQUENCE COMPLETE</h2>
           <div className="score-box">
             <span className="big-score">{calculateScore()}</span>
-            <span className="total">/ {questions.length}</span>
+            <span className="total"> / {questions.length}</span>
           </div>
-          <RestartBtn onClick={() => window.location.reload()}>Try Another Topic</RestartBtn>
+          <RestartBtn onClick={() => window.location.reload()}>RE-INITIALIZE</RestartBtn>
         </ResultCard>
       ) : (
         <QuizPlayArea>
           <div className="quiz-header">
-            <div className="progress">Question {currentIndex + 1} of {questions.length}</div>
-            <div className={`timer ${timer < 5 ? 'critical' : ''}`}>
-              <Clock size={18} /> {timer}s
+            <div className="progress">STATION {currentIndex + 1} // {questions.length}</div>
+            <div className={`timer ${timer < 10 ? 'critical' : ''}`}>
+              <Clock size={14} /> <span className="timer-text">T-MINUS {timer}S</span>
             </div>
           </div>
           <ProgressBar>
@@ -179,11 +174,11 @@ const TopicQuizManager = () => {
           <AnimatePresence mode="wait">
             <QuestionBox 
               key={currentIndex} 
-              initial={{ x: 30, opacity: 0 }} 
-              animate={{ x: 0, opacity: 1 }} 
-              exit={{ x: -30, opacity: 0 }}
+              initial={{ opacity: 0, y: 10 }} 
+              animate={{ opacity: 1, y: 0 }} 
+              exit={{ opacity: 0, y: -10 }}
             >
-              <h2>{questions[currentIndex].question}</h2>
+              <h2>{questions[currentIndex].question.toUpperCase()}</h2>
               <OptionsGrid>
                 {['opt1', 'opt2', 'opt3', 'opt4'].map((optKey) => (
                   <OptionBtn 
@@ -191,7 +186,8 @@ const TopicQuizManager = () => {
                     onClick={() => handleAnswer(questions[currentIndex][optKey])}
                     $selected={userAnswers[currentIndex] === questions[currentIndex][optKey]}
                   >
-                    {questions[currentIndex][optKey]}
+                    <div className="indicator" />
+                    <span className="opt-text">{questions[currentIndex][optKey].toUpperCase()}</span>
                   </OptionBtn>
                 ))}
               </OptionsGrid>
@@ -203,89 +199,180 @@ const TopicQuizManager = () => {
   );
 };
 
-/* --- STYLES --- */
+/* --- STYLES (ZOLVI B&W RESPONSIVE) --- */
 
 const Container = styled.div`
-  max-width: 900px; margin: 0 auto; padding: 40px 20px; color: white; min-height: 100vh;
+  max-width: 1200px; 
+  margin: 0 auto; 
+  padding: 40px 16px; 
+  color: white; 
+  min-height: 100vh;
+
+  @media (min-width: 768px) {
+    padding: 80px 40px;
+  }
 `;
 
 const Header = styled.div`
-  text-align: center; margin-bottom: 40px;
+  margin-bottom: 40px;
+  @media (min-width: 768px) {
+    margin-bottom: 60px;
+  }
+
   .live-badge {
     display: inline-flex; align-items: center; gap: 8px;
-    background: rgba(239, 68, 68, 0.1); color: #ef4444;
-    padding: 6px 15px; border-radius: 100px; font-weight: 900; font-size: 0.7rem;
-    margin-bottom: 15px; border: 1px solid rgba(239, 68, 68, 0.2);
+    background: #000; color: #fff;
+    padding: 4px 12px; border: 1px solid #fff; font-weight: 900; font-size: 0.55rem;
+    margin-bottom: 16px; letter-spacing: 0.2em;
   }
-  h1 { font-size: 2.5rem; font-weight: 800; margin-bottom: 10px; }
-  p { color: #94a3b8; font-size: 1.1rem; }
+  h1 { 
+    font-size: 1.8rem; font-weight: 900; margin-bottom: 8px; letter-spacing: -1px; 
+    @media (min-width: 768px) { font-size: 2.8rem; }
+  }
+  p { color: #555; font-size: 0.7rem; font-weight: 800; letter-spacing: 0.05em; }
 `;
 
 const TopicGrid = styled.div`
-  display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px;
-`;
+  display: grid; 
+  grid-template-columns: 1fr; 
+  gap: 1px;
+  background: #222; 
+  border: 1px solid #222;
 
-const TopicCard = styled(motion.div)`
-  background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08);
-  padding: 18px; border-radius: 24px; cursor: pointer; display: flex; align-items: center; gap: 16px;
-  transition: all 0.3s ease; backdrop-filter: blur(10px);
-  &:hover { background: rgba(255, 255, 255, 0.06); border-color: #3b82f6; .arrow { color: #3b82f6; transform: translateX(4px); } }
-  .topic-icon-box { background: rgba(255, 255, 255, 0.05); padding: 12px; border-radius: 16px; }
-  .topic-info { flex: 1; h3 { font-size: 1.1rem; color: #fff; margin-bottom: 4px; } .topic-id { color: #64748b; font-size: 0.7rem; font-weight: 700; } }
-  .arrow { color: #334155; transition: 0.3s; }
-`;
-
-const QuizPlayArea = styled.div`
-  max-width: 700px; margin: 0 auto;
-  .quiz-header {
-    display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;
-    .progress { font-weight: 700; color: #94a3b8; }
-    .timer {
-      display: flex; align-items: center; gap: 8px; background: rgba(30, 41, 59, 0.8);
-      padding: 8px 16px; border-radius: 14px; font-weight: 800; font-family: monospace;
-      &.critical { color: #ef4444; border: 1px solid #ef4444; }
-    }
+  @media (min-width: 640px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  @media (min-width: 1024px) {
+    grid-template-columns: repeat(3, 1fr);
   }
 `;
 
+const TopicCard = styled.div`
+  background: #000; 
+  padding: 20px; 
+  cursor: pointer; 
+  display: flex; 
+  align-items: center; 
+  gap: 16px;
+  transition: 0.2s;
+  
+  &:hover { 
+    background: #0a0a0a; 
+    .arrow { transform: translateX(5px); color: #fff; }
+  }
+
+  .topic-icon-box { border: 1px solid #222; padding: 10px; flex-shrink: 0; }
+  .topic-info { 
+    flex: 1; 
+    min-width: 0; /* Prevents text overflow */
+    h3 { 
+      font-size: 0.8rem; font-weight: 900; letter-spacing: 0.05em; margin-bottom: 2px;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    } 
+    .topic-id { color: #444; font-size: 0.55rem; font-weight: 800; } 
+  }
+  .arrow { color: #222; transition: 0.2s; flex-shrink: 0; }
+`;
+
+const QuizPlayArea = styled.div`
+  max-width: 800px; 
+  margin: 0 auto;
+  
+  .quiz-header {
+    display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 20px;
+    .progress { font-weight: 900; color: #444; font-size: 0.65rem; letter-spacing: 0.1em; }
+    .timer {
+      display: flex; align-items: center; gap: 6px; font-weight: 900; font-size: 0.65rem;
+      &.critical { color: #fff; animation: blink 0.5s infinite; }
+      .timer-text { display: block; }
+    }
+  }
+  @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+`;
+
 const ProgressBar = styled.div`
-  height: 8px; background: rgba(255,255,255,0.05); border-radius: 20px; margin-bottom: 50px; overflow: hidden;
-  .fill { height: 100%; background: linear-gradient(90deg, #3b82f6, #2dd4bf); box-shadow: 0 0 20px rgba(59, 130, 246, 0.4); }
+  height: 2px; background: #111; margin-bottom: 40px;
+  @media (min-width: 768px) { margin-bottom: 60px; }
+  .fill { height: 100%; background: #fff; }
 `;
 
 const QuestionBox = styled(motion.div)`
-  h2 { font-size: 1.8rem; line-height: 1.4; margin-bottom: 40px; text-align: center; font-weight: 700; }
+  h2 { 
+    font-size: 1.25rem; line-height: 1.4; margin-bottom: 30px; text-align: left; font-weight: 900; letter-spacing: -0.02em; 
+    @media (min-width: 768px) { font-size: 1.8rem; margin-bottom: 50px; }
+  }
 `;
 
 const OptionsGrid = styled.div`
-  display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
-  @media (max-width: 600px) { grid-template-columns: 1fr; }
+  display: grid; 
+  grid-template-columns: 1fr; 
+  gap: 1px; 
+  background: #222; 
+  border: 1px solid #222;
+
+  @media (min-width: 768px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
 `;
 
 const OptionBtn = styled.button`
-  background: ${props => props.$selected ? '#3b82f6' : 'rgba(255, 255, 255, 0.03)'};
-  border: 1px solid ${props => props.$selected ? '#3b82f6' : 'rgba(255, 255, 255, 0.1)'};
-  color: white; padding: 22px; border-radius: 20px; font-size: 1rem;
-  font-weight: 600; cursor: pointer; transition: 0.2s; text-align: left;
-  &:hover { background: ${props => props.$selected ? '#3b82f6' : 'rgba(255, 255, 255, 0.08)'}; transform: translateY(-2px); }
+  background: ${props => props.$selected ? '#111' : '#000'};
+  border: none;
+  color: ${props => props.$selected ? '#fff' : '#666'}; 
+  padding: 20px; 
+  font-size: 0.75rem;
+  font-weight: 800; 
+  cursor: pointer; 
+  transition: 0.15s; 
+  text-align: left;
+  display: flex; 
+  align-items: center; 
+  gap: 12px;
+
+  @media (min-width: 768px) {
+    padding: 28px;
+    font-size: 0.85rem;
+  }
+
+  .indicator { 
+    width: 6px; height: 6px; border: 1px solid #222; flex-shrink: 0;
+    background: ${props => props.$selected ? '#fff' : 'transparent'};
+    border-color: ${props => props.$selected ? '#fff' : '#222'};
+  }
+  
+  .opt-text { line-height: 1.2; }
+  
+  &:hover { 
+    color: #fff; 
+    background: #0a0a0a; 
+    .indicator { border-color: #444; }
+  }
 `;
 
 const ResultCard = styled(motion.div)`
-  text-align: center; background: rgba(255,255,255,0.02); padding: 60px 40px; border-radius: 32px;
-  border: 1px solid rgba(255,255,255,0.08); margin: 0 auto; max-width: 500px;
-  .score-box { margin: 30px 0; .big-score { font-size: 5rem; font-weight: 900; color: #10b981; } .total { font-size: 1.8rem; color: #64748b; } }
-  h2 { font-size: 2.2rem; margin-top: 20px; font-weight: 800; }
+  text-align: center; border: 1px solid #222; padding: 40px 20px;
+  @media (min-width: 768px) { padding: 80px 40px; }
+
+  .score-box { 
+    margin: 30px 0; 
+    .big-score { font-size: 4rem; font-weight: 900; color: #fff; @media (min-width: 768px) { font-size: 7rem; } } 
+    .total { font-size: 1.2rem; color: #444; font-weight: 900; } 
+  }
+  h2 { font-size: 1rem; font-weight: 900; letter-spacing: 0.2em; }
 `;
 
 const LoadingScreen = styled.div`
-  display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; gap: 20px; color: #94a3b8;
-  .spinner { animation: spin 1s linear infinite; color: #3b82f6; }
+  display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 80vh; gap: 24px; padding: 20px;
+  span { font-weight: 900; font-size: 0.6rem; letter-spacing: 0.2em; color: #444; text-align: center; }
+  .spinner { animation: spin 1s linear infinite; color: #fff; }
   @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 `;
 
 const RestartBtn = styled.button`
-  background: #3b82f6; color: white; border: none; padding: 18px 36px; border-radius: 16px; font-weight: 800; cursor: pointer; transition: 0.2s;
-  &:hover { background: #2563eb; transform: scale(1.05); }
+  background: #fff; color: #000; border: none; padding: 16px 32px; font-weight: 900; cursor: pointer; transition: 0.2s;
+  letter-spacing: 0.1em; width: 100%; max-width: 300px;
+  font-size: 0.8rem;
+  &:hover { background: #eee; transform: translateY(-2px); }
 `;
 
 export default TopicQuizManager;

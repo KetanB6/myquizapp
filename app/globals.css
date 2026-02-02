@@ -1,11 +1,12 @@
 @import "tailwindcss";
 
-  :root {
+:root {
   --background: #ffffff;
-  --foreground: #171717;
-} 
+  --foreground: #000000;
+  --border-color: #e5e5e5;
+}
 
- @theme inline {
+@theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
@@ -14,51 +15,77 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #000000;
+    --foreground: #ffffff;
+    --border-color: #222222;
   }
-} 
+}
 
- body {
+body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
-}  
+  font-family: var(--font-sans), Arial, sans-serif;
+  overflow-x: hidden;
+  /* Use overlay to prevent layout shifts, but keep it monochrome */
+  overflow-y: overlay;
+  scrollbar-gutter: stable;
+}
 
+/* --- Zolvi Monochrome Scrollbar --- */
 
+/* 1. Global scrollbar settings */
+::-webkit-scrollbar {
+  width: 8px; /* Slimmer, more modern width */
+  height: 8px;
+}
 
+/* 2. The Track - Pure black/transparent */
+::-webkit-scrollbar-track {
+  background: var(--background);
+  border-left: 1px solid var(--border-color);
+}
 
+/* 3. The Thumb - High contrast stark white/grey */
+::-webkit-scrollbar-thumb {
+  background: #333333; /* Dark grey thumb */
+  border-radius: 0px;   /* Sharp edges for Zolvi look */
+  border: 2px solid var(--background); /* Creates a 'floating' effect */
+  background-clip: content-box;
+}
+
+/* 4. Thumb Hover State - Turns white for high visibility */
+::-webkit-scrollbar-thumb:hover {
+  background: #666666;
+}
+
+/* 5. Thumb Active/Click State */
+::-webkit-scrollbar-thumb:active {
+  background: var(--foreground);
+}
+
+/* 6. Firefox Support */
+@supports (scrollbar-width: thin) {
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: #333333 var(--background);
+  }
+}
+
+/* Utility to hide scrollbars */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Remove Chaos Ball animations - Zolvi is static and clean */
 .glow-ball {
-  position: absolute;
-  border-radius: 50%;
-  background: radial-gradient(
-    circle,
-    rgba(120, 120, 255, 0.9),
-    rgba(120, 120, 255, 0.4),
-    transparent 70%
-  );
-  filter: blur(6px);
-  animation: float-chaos linear infinite;
+  display: none;
 }
 
-@keyframes float-chaos {
-  0% {
-    transform: translate(0, 0) scale(1);
-  }
-  25% {
-    transform: translate(120px, -80px) scale(1.2);
-  }
-  50% {
-    transform: translate(-100px, 100px) scale(0.9);
-  }
-  75% {
-    transform: translate(80px, 120px) scale(1.3);
-  }
-  100% {
-    transform: translate(0, 0) scale(1);
-  }
-}
-
+/* Stark Password Field Styling */
 .password-field {
   position: relative;
 }
@@ -69,81 +96,11 @@
   top: 50%;
   transform: translateY(-50%);
   cursor: pointer;
-  color: #fff;
-  font-size: 18px;
+  color: var(--foreground);
+  opacity: 0.5;
+  transition: opacity 0.2s;
 }
 
-/* --- Quizक्रिडा Custom Full Scrollbar --- */
-
-/* 1. Global scrollbar settings */
-::-webkit-scrollbar {
-  width: 12px;               /* Width of vertical scrollbar */
-  height: 12px;              /* Height of horizontal scrollbar */
+.eye-icon:hover {
+  opacity: 1;
 }
-
-/* 2. The Track (Background) */
-::-webkit-scrollbar-track {
-  background: rgba(15, 23, 42, 0.6); /* Deep navy to match Geist/Dark theme */
-  backdrop-filter: blur(10px);       /* Blurs the AppBackground behind the track */
-  border-left: 1px solid rgba(255, 255, 255, 0.05);
-}
-
-/* 3. The Thumb (The draggable part) */
-::-webkit-scrollbar-thumb {
-  background: linear-gradient(
-    180deg, 
-    rgba(59, 130, 246, 0.4) 0%, 
-    rgba(37, 99, 235, 0.6) 100%
-  ); 
-  border-radius: 20px;       /* Round edges to match your buttons/cards */
-  border: 3px solid transparent; /* Creates padding around the thumb */
-  background-clip: content-box;  /* Ensures the border stays transparent */
-  box-shadow: inset 0 0 10px rgba(59, 130, 246, 0.2);
-  transition: all 0.3s ease-in-out;
-}
-
-/* 4. Thumb Hover State */
-::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(
-    180deg, 
-    #3b82f6 0%, 
-    #2563eb 100%
-  );
-  background-clip: content-box;
-  box-shadow: 0 0 15px rgba(59, 130, 246, 0.5); /* Glowing effect on hover */
-}
-
-/* 5. Thumb Active/Click State */
-::-webkit-scrollbar-thumb:active {
-  background: #60a5fa; /* Lighter blue when dragging */
-  background-clip: content-box;
-}
-
-/* 6. Firefox Support (Standardized properties) */
-@supports (scrollbar-width: thin) {
-  * {
-    scrollbar-width: thin;
-    scrollbar-color: #3b82f6 rgba(15, 23, 42, 0.6);
-  }
-}
-.no-scrollbar::-webkit-scrollbar {
-  display: none;
-}
-
-.no-scrollbar {
-  -ms-overflow-style: none;  /* IE and Edge */
-  scrollbar-width: none;  /* Firefox */
-}
-
-/* 7. Prevent horizontal scroll jitters */
-html, body {
-  overflow-x: hidden;
-  overflow-y: overlay;
-  scrollbar-gutter: stable; /* Prevents layout jump when scrollbar appears */
-  margin: 0;
-  padding: 0;
-height: auto;
-min-height: 100%;
-
-}
-
