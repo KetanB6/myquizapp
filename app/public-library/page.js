@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import styled, { keyframes } from 'styled-components';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Play, User, Mail, Clock, Share2, QrCode, X, PlusCircle, Ghost } from 'lucide-react';
+import { Play, User, Mail, Clock, Share2, QrCode, X, PlusCircle, Ghost, Loader2 } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import toast, { Toaster } from 'react-hot-toast';
 
@@ -37,7 +37,12 @@ const PublicQuizzes = () => {
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
   };
 
-  if (loading) return <LoadingWrapper>🌌 Syncing with the Arena...</LoadingWrapper>;
+  if (loading) return (
+    <LoadingWrapper>
+      <Loader2 size={32} className="spinner" />
+      🌌 Syncing with the Arena...
+    </LoadingWrapper>
+  );
 
   return (
     <PageContainer>
@@ -125,6 +130,11 @@ const pulse = keyframes`
   100% { transform: scale(1); opacity: 1; }
 `;
 
+const spin = keyframes`
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+`;
+
 // --- Styled Components ---
 const PageContainer = styled.div`
 margin-top: -60px;
@@ -161,10 +171,10 @@ const QuizCard = styled(motion.div)`
   position: relative;
   border-radius: 28px;
   padding: 24px;
-  background: rgba(15, 23, 42, 0.6); /* Removed white milky bg */
+  background: rgba(15, 23, 42, 0.6); 
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(59, 130, 246, 0.1); /* Blue tint instead of white */
+  border: 1px solid rgba(59, 130, 246, 0.1); 
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
   overflow: hidden;
 
@@ -207,9 +217,8 @@ const ModalContent = styled(motion.div)`
 `;
 
 const QRWrapper = styled.div`
-
   padding: 15px;
-  background: white; /* Extremely subtle for scanning contrast */
+  background: white; 
   border-radius: 20px;
   display: inline-block;
   margin: 20px 0;
@@ -259,8 +268,12 @@ const QRTrigger = styled.button`
 `;
 
 const LoadingWrapper = styled.div`
-  height: 100vh; display: flex; align-items: center; justify-content: center;
-   color: #3b82f6; font-weight: 700;
+  height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  color: #3b82f6; font-weight: 700; gap: 15px;
+
+  .spinner {
+    animation: ${spin} 1s linear infinite;
+  }
 `;
 
 const CloseBtn = styled.button`

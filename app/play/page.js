@@ -12,7 +12,6 @@ const PlayQuiz = () => {
     const [score, setScore] = useState(0);
     
     const [currentQuestionIdx, setCurrentQuestionIdx] = useState(0);
-    // Dynamic timer state
     const [secondsPerQuestion, setSecondsPerQuestion] = useState(60); 
     const [timeLeft, setTimeLeft] = useState(60);
 
@@ -21,7 +20,6 @@ const PlayQuiz = () => {
         quizId: ''
     });
 
-    // --- Content Protection & QR Logic ---
     useEffect(() => {
         const handleContextMenu = (e) => e.preventDefault();
         const handleKeyDown = (e) => {
@@ -54,7 +52,6 @@ const PlayQuiz = () => {
         };
     }, []);
 
-    // --- Timer Logic ---
     useEffect(() => {
         if (!quizData || isSubmitted) return;
 
@@ -77,7 +74,7 @@ const PlayQuiz = () => {
             handleSubmitExam();
         } else {
             setCurrentQuestionIdx(prev => prev + 1);
-            setTimeLeft(secondsPerQuestion); // Use dynamic value
+            setTimeLeft(secondsPerQuestion); 
         }
     };
 
@@ -89,24 +86,20 @@ const PlayQuiz = () => {
 
         setIsLoading(true);
         try {
-            // 1. Get Quiz Config (Time per question)
             const configRes = await fetch(`https://quiz-krida.onrender.com/Logged/Preview/${joinData.quizId}`, {
                 method: 'GET',
                 headers: { 'ngrok-skip-browser-warning': '69420' }
             });
             
-            let dynamicTime = 60; // fallback
+            let dynamicTime = 60; 
             if (configRes.ok) {
                 const configData = await configRes.json();
-                // Assuming timePerQ is in minutes, converting to seconds. 
-                // If it's already in seconds, remove the "* 60"
                 if (configData.quiz && configData.quiz.timePerQ) {
                     dynamicTime = parseInt(configData.quiz.timePerQ) * 60;
                     setSecondsPerQuestion(dynamicTime);
                 }
             }
 
-            // 2. Join Quiz
             const response = await fetch(`https://quiz-krida.onrender.com/Play/${joinData.quizId}/${joinData.participantName}`, {
                 method: 'GET',
                 headers: {
@@ -123,7 +116,7 @@ const PlayQuiz = () => {
             }
 
             setQuizData(data);
-            setTimeLeft(dynamicTime); // Set initial timer to dynamic value
+            setTimeLeft(dynamicTime); 
             toast.success(`Joined: ${data.quiz.quizTitle}`);
         } catch (error) {
             console.error("Fetch Error:", error);
@@ -228,14 +221,14 @@ const PlayQuiz = () => {
             ) : (
                 <ResultContainer>
                     <ResultHeader>
-                        <div className="title-area">
+                        <div className="flex-row-header">
                             <div className={isSubmitted ? "score-badge" : "success-badge"}>
                                 {isSubmitted ? <Trophy size={16} /> : <Timer size={16} />}
                                 {isSubmitted 
                                     ? `Final Score: ${score} / ${quizData.questions.length}` 
                                     : `Time Remaining: ${timeLeft}s`}
                             </div>
-                            <h2>{isSubmitted ? "Performance Summary" : joinData.participantName}</h2>
+                            <h2>{isSubmitted ? "Performance Summary" : quizData.quiz.quizTitle}</h2>
                         </div>
                         {isSubmitted && (
                             <button className="reset-btn" onClick={() => window.location.reload()}>
@@ -381,13 +374,13 @@ const ResultContainer = styled.div` width: 100%; max-width: 700px; z-index: 1; p
 
 const ResultHeader = styled.div`
     display: flex; flex-direction: column; gap: 15px; margin-bottom: 40px;
-    .title-area { display: flex; flex-direction: column; gap: 10px; }
-    .success-badge, .score-badge { align-self: flex-start; backdrop-filter: blur(10px); padding: 8px 16px; border-radius: 100px; font-size: 0.8rem; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+    .flex-row-header { display: flex; align-items: center; justify-content: space-between; gap: 15px; width: 100%; }
+    .success-badge, .score-badge { backdrop-filter: blur(10px); padding: 8px 16px; border-radius: 100px; font-size: 0.8rem; font-weight: 700; display: flex; align-items: center; gap: 8px; white-space: nowrap; }
     .success-badge { background: rgba(34, 197, 94, 0.15); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.3); }
     .score-badge { background: rgba(234, 179, 8, 0.15); color: #facc15; border: 1px solid rgba(234, 179, 8, 0.3); }
-    h2 { margin: 0; font-size: 2rem; font-weight: 800; color: #fff; }
+    h2 { margin: 0; font-size: 1.8rem; font-weight: 800; color: #fff; text-align: right; }
     .reset-btn { align-self: flex-start; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(10px); color: #fff; padding: 10px 20px; border-radius: 12px; cursor: pointer; display: flex; align-items: center; gap: 8px; font-weight: 600; transition: 0.2s; &:hover { background: rgba(255,255,255,0.1); } }
-    @media (max-width: 480px) { h2 { font-size: 1.5rem; } }
+    @media (max-width: 480px) { .flex-row-header { flex-direction: row; align-items: center; } h2 { font-size: 1.2rem; } }
 `;
 
 const QuestionGrid = styled.div` display: flex; flex-direction: column; gap: 20px; `;
