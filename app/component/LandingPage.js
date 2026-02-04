@@ -97,25 +97,7 @@ const LandingPage = () => {
                     </button>
                 </motion.div>
 
-                <FloatingStats
-                    initial={{ opacity: 0, y: 30 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 1.4 }}
-                >
-                    <StatItem>
-                        <Zap size={16} />
-                        {/* 3. Use isMounted to prevent text mismatch during hydration */}
-                        <span>{isMounted ? randomUsers : "5000"} USERS</span>
-                    </StatItem>
-                    <StatItem>
-                        <Target size={16} />
-                        <span>99.9% UPTIME</span>
-                    </StatItem>
-                    <StatItem>
-                        <TrendingUp size={16} />
-                        <span>₹5K+ PRIZES</span>
-                    </StatItem>
-                </FloatingStats>
+            
             </HeroSection>
 
             {/* Rest of your component remains exactly the same... */}
