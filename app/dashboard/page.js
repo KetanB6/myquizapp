@@ -356,7 +356,7 @@ const FullQuizPreview = ({ quizId, onBack, primaryColor }) => {
   useEffect(() => {
     const fetchQuestions = async () => {
       try {
-        const response = await fetch(`https://noneditorial-professionally-serena.ngrok-free.dev/Logged/Preview/${quizId}`, {
+        const response = await fetch(`https://quiz-krida.onrender.comLogged/Preview/${quizId}`, {
           method: 'GET', headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' }
         });
         if (response.ok) { const data = await response.json(); setQuestions(data.questions || []); }
@@ -576,7 +576,7 @@ const UserDashboard = () => {
     if (!email) return;
     setLoading(true);
     try {
-      const response = await fetch(`https://noneditorial-professionally-serena.ngrok-free.dev/Logged?email=${email}`, {
+      const response = await fetch(`https://quiz-krida.onrender.comLogged?email=${email}`, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
         cache: 'no-store'
