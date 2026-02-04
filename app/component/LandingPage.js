@@ -3,7 +3,7 @@ import React, { useRef, useEffect, useState } from 'react';
 import styled, { keyframes } from 'styled-components';
 import { motion, useScroll, useMotionValue, useSpring } from 'framer-motion';
 import {
-    ArrowUpRight, Twitter, Instagram, Github, Zap, Target, TrendingUp
+    ArrowUpRight, Twitter, Instagram, Github, Zap, Target, TrendingUp, ExternalLink
 } from 'lucide-react';
 import Link from 'next/link';
 import QuickActions from './QuickActions';
@@ -12,7 +12,7 @@ const LandingPage = () => {
     const featuresRef = useRef(null);
     // 1. Set to a static number initially to match Server-Side Rendering
     const [randomUsers, setRandomUsers] = useState(5000);
-    const [isMounted, setIsMounted] = useState(false); 
+    const [isMounted, setIsMounted] = useState(false);
     const { scrollYProgress } = useScroll();
     const scaleProgress = useSpring(scrollYProgress, {
         stiffness: 100,
@@ -23,7 +23,7 @@ const LandingPage = () => {
     useEffect(() => {
         // 2. Set isMounted to true once we are on the client
         setIsMounted(true);
-        
+
         // Trigger initial random number immediately on mount
         setRandomUsers(Math.floor(Math.random() * 9000) + 1000);
 
@@ -216,50 +216,46 @@ const LandingPage = () => {
                         whileInView={{ opacity: 1, x: 0 }}
                         viewport={{ once: true }}
                     >
+                        {/* --- CORE DEVELOPERS SECTION --- */}
+                        <div className="nav-group">
+                            <h5>CORE_DEVELOPERS</h5>
+                            <div className="dev-credit">
+                                <span className="role">FRONTEND:</span>
+                                <a
+                                    href="https://www.linkedin.com/in/dhiraj-birajdar-b920302aa/"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="dev-link"
+                                >
+                                    DHIRAJ_BIRAJDAR <ExternalLink size={10} />
+                                </a>
+                            </div>
+                            <div className="dev-credit">
+                                <span className="role">BACKEND:</span>
+                                <a
+                                    href="https://www.linkedin.com/in/ketan-bidave-08397430a/?originalSubdomain=in"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="dev-link"
+                                >
+                                    KETAN_BIDAVE <ExternalLink size={10} />
+                                </a>
+                            </div>
+                        </div>
+
                         <div className="nav-group">
                             <h5>NAVIGATE</h5>
                             <Link href="/">HOME</Link>
                             <Link href="/about">ABOUT US</Link>
                             <Link href="/services">SERVICES</Link>
                         </div>
-                        <div className="nav-group">
-                            <h5>CONNECT</h5>
-                            <a href="mailto:hello@quizkrida.com">GET IN TOUCH</a>
-                            <div className="socials">
-                                <SocialIcon
-                                    as={motion.a}
-                                    href="https://github.com/DhirajB-7"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    whileHover={{ scale: 1.2, rotate: 5 }}
-                                >
-                                    <Github size={18} />
-                                </SocialIcon>
-                                <SocialIcon
-                                    as={motion.a}
-                                    href="https://www.instagram.com/dhiraj_birajdar_77/"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    whileHover={{ scale: 1.2, rotate: -5 }}
-                                >
-                                    <Instagram size={18} />
-                                </SocialIcon>
-                                <SocialIcon
-                                    as={motion.a}
-                                    href="https://www.linkedin.com/in/dhiraj-birajdar-b920302aa/"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    whileHover={{ scale: 1.2, rotate: 5 }}
-                                >
-                                    <Twitter size={18} />
-                                </SocialIcon>
-                            </div>
-                        </div>
+
+                       
                     </motion.div>
                 </div>
 
                 <div className="footer-bottom">
-                    <p>© 2026 QUIZKRIDA. ALL RIGHTS RESERVED.</p>
+                    <p>© 2026 QUIZKRIDA. ARCHITECTED BY DHIRAJ & KETAN.</p>
                     <div className="legal">
                         <span>PRIVACY POLICY</span>
                         <span>TERMS OF SERVICE</span>
@@ -269,6 +265,8 @@ const LandingPage = () => {
         </PageWrapper>
     );
 };
+
+
 // --- Animations ---
 const AnimatedWord = ({ children, delay }) => (
     <motion.span
@@ -825,6 +823,34 @@ const Footer = styled.footer`
             margin-bottom: 100px;
         }
     }
+        .dev-credit {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 12px;
+    
+    .role {
+      font-size: 0.6rem;
+      color: var(--accent); /* or #fff */
+      font-weight: 900;
+      letter-spacing: 1px;
+      opacity: 0.6;
+    }
+
+    .dev-link {
+      font-size: 0.75rem;
+      color: #fff;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-weight: 700;
+      
+      &:hover {
+        color: var(--accent);
+        text-decoration: underline;
+      }
+    }
+  }
 
     .footer-brand {
         max-width: 500px;
