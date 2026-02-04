@@ -81,7 +81,7 @@ const CreatePage = () => {
         };
 
         try {
-            const response = await fetch('https://noneditorial-professionally-serena.ngrok-free.dev/Create', {
+            const response = await fetch('https://quiz-krida.onrender.com/Create', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -178,7 +178,7 @@ const CreatePage = () => {
         }));
 
         try {
-            const response = await fetch('https://noneditorial-professionally-serena.ngrok-free.dev/Questions', {
+            const response = await fetch('https://quiz-krida.onrender.com/Questions', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
