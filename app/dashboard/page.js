@@ -160,6 +160,7 @@ const EditQuizModule = ({ quizId, onBack, primaryColor, userEmail }) => {
             quizTitle: data.quizTitle,
             duration: data.duration,
             status: data.status,
+            isPrivate: data.isPrivate,
             createdBy: data.createdBy
           });
           const qs = data.questions || [];
@@ -226,14 +227,15 @@ const EditQuizModule = ({ quizId, onBack, primaryColor, userEmail }) => {
     }
 
     setSaving(true);
-    const isPrivate = quizInfo.status === true || String(quizInfo.status).toLowerCase() === 'true';
+   
     const payload = {
       quiz: {
         quiz: {
           quizId: parseInt(quizId),
           quizTitle: quizInfo.quizTitle,
           duration: parseInt(quizInfo.duration),
-          status: isPrivate,
+          status: quizInfo.status,
+          isPrivate: quizInfo.isPrivate,
           createdBy: quizInfo.createdBy || userEmail
         },
         questions: questions.map(q => ({
@@ -303,8 +305,8 @@ const EditQuizModule = ({ quizId, onBack, primaryColor, userEmail }) => {
             <div className="field">
               <label>VISIBILITY</label>
               <select
-                value={String(quizInfo?.status)}
-                onChange={(e) => setQuizInfo({ ...quizInfo, status: e.target.value === "true" })}
+                value={String(quizInfo?.isPrivate)}
+                onChange={(e) => setQuizInfo({ ...quizInfo, isPrivate: e.target.value === "true" })}
               >
                 <option value="true">Private</option>
                 <option value="false">Public</option>
