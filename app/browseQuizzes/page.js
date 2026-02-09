@@ -46,7 +46,7 @@ const TopicQuizManager = () => {
   const [userAnswers, setUserAnswers] = useState({});
   const [isFinished, setIsFinished] = useState(false);
 
-  const BASE_URL = 'https://quizbyaiservice-production.up.railway.app';
+  const BASE_URL = 'https://quizbyapi.onrender.com';
   useEffect(() => {
     const fetchTopics = async () => {
       try {
