@@ -110,7 +110,7 @@ const PublicQuizzes = () => {
                                 </CardMain>
 
                                 <CardActions>
-                                    <PlayBtn onClick={() => window.location.href = `/play?id=${quiz.quizId}`}>
+                                    <PlayBtn onClick={() => window.location.href = `/play/quizId=${quiz.quizId}`}>
                                         INITIALIZE <ArrowRight size={16} />
                                     </PlayBtn>
                                     <ShareBtn onClick={() => handleShareWhatsApp(quiz.quizId, quiz.quizTitle)}>
@@ -159,7 +159,7 @@ const PublicQuizzes = () => {
                                 </div>
                                 <QRBox>
                                     <QRCodeSVG 
-                                        value={`https://myquizapp-psi.vercel.app/play?id=${selectedQR.quizId}`} 
+                                        value={`https://quizkrida.vercel.app/play?quizId=${selectedQR.quizId}`} 
                                         size={220} bgColor="#fff" fgColor="#000"
                                         includeMargin={true}
                                     />

@@ -15,7 +15,7 @@ import autoTable from 'jspdf-autotable';
 
 /* --- QR MODAL COMPONENT --- */
 const QRModal = ({ quizId, quizTitle, onClose }) => {
-  const quizLink = `http://10.134.120.46:3000/play?quizId=${quizId}`;
+  const quizLink = `https://quizkrida.vercel.app/play?quizId=${quizId}`;
 
   const shareToWhatsApp = () => {
     const text = `Join my quiz: *${quizTitle}*\nScan the QR or click the link below to start (Quiz ID: ${quizId}):\n${quizLink}`;
