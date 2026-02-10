@@ -247,7 +247,7 @@ const TopicGrid = styled.div`
 `;
 
 const TopicCard = styled.div`
-  background: #000; 
+  background: #1E1E1E; 
   padding: 20px; 
   cursor: pointer; 
   display: flex; 
