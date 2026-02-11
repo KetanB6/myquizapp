@@ -3,19 +3,21 @@ import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import toast, { Toaster } from "react-hot-toast";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
-import { Layout, Mail, Lock, User, LogOut, ArrowRight, CheckCircle, Loader2, ShieldCheck, Cpu } from 'lucide-react';
+import { Layout, Mail, Lock, User, LogOut, ArrowRight, CheckCircle, Loader2, ShieldCheck, Cpu, Trash2, AlertTriangle, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 const Form = () => {
     const router = useRouter();
     const [isAuth, setIsAuth] = useState(false);
     const [userName, setUserName] = useState("");
+    const [userEmail, setUserEmail] = useState("");
     const [isFlipped, setIsFlipped] = useState(false);
 
     const [isLoggingIn, setIsLoggingIn] = useState(false);
     const [isSigningUp, setIsSigningUp] = useState(false);
     const [isLoggingOut, setIsLoggingOut] = useState(false);
     const [isEnteringDashboard, setIsEnteringDashboard] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     const [step, setStep] = useState(1);
     const [otpInput, setOtpInput] = useState("");
@@ -31,6 +33,11 @@ const Form = () => {
     const [signupError, setSignupError] = useState("");
     const [loginError, setLoginError] = useState("");
 
+    // Delete Account States
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [deleteEmailInput, setDeleteEmailInput] = useState("");
+    const [deleteError, setDeleteError] = useState("");
+
     const primaryColor = "#ffffff";
 
     useEffect(() => {
@@ -41,6 +48,7 @@ const Form = () => {
                 const parsedUser = JSON.parse(user);
                 setIsAuth(true);
                 setUserName(parsedUser?.name || "User");
+                setUserEmail(parsedUser?.email || "");
             } catch (e) {
                 localStorage.clear();
             }
@@ -146,6 +154,7 @@ const Form = () => {
             localStorage.setItem("user", JSON.stringify(data.user));
             setIsAuth(true);
             setUserName(data.user?.name || "User");
+            setUserEmail(data.user?.email || "");
             toast.success("Welcome back!");
             router.push("/");
         } catch (err) {
@@ -168,6 +177,62 @@ const Form = () => {
         router.push("/dashboard");
     };
 
+    // ✅ DELETE ACCOUNT FUNCTIONS
+    const handleDeleteAccount = async () => {
+        setDeleteError("");
+        
+        if (!deleteEmailInput) {
+            setDeleteError("Email is required");
+            return;
+        }
+
+        if (deleteEmailInput.toLowerCase() !== userEmail.toLowerCase()) {
+            setDeleteError("Email does not match your account");
+            return;
+        }
+
+        setIsDeleting(true);
+        const loadingToast = toast.loading("Deleting account...");
+
+        try {
+            const token = localStorage.getItem("token");
+            const res = await fetch("/api/auth/delete", {
+                method: "DELETE",
+                headers: { 
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                },
+                body: JSON.stringify({ email: deleteEmailInput }),
+            });
+
+            const data = await res.json();
+            
+            if (!res.ok) {
+                throw new Error(data.message || "Failed to delete account");
+            }
+
+            toast.success("Account deleted successfully", { id: loadingToast });
+            localStorage.clear();
+            setIsAuth(false);
+            setShowDeleteModal(false);
+            setDeleteEmailInput("");
+            setTimeout(() => router.push("/"), 1000);
+        } catch (err) {
+            toast.error(err.message, { id: loadingToast });
+            setDeleteError(err.message);
+        } finally {
+            setIsDeleting(false);
+        }
+    };
+
+    const handleCloseDeleteModal = () => {
+        if (!isDeleting) {
+            setShowDeleteModal(false);
+            setDeleteEmailInput("");
+            setDeleteError("");
+        }
+    };
+
     return (
         <StyledWrapper $primary={primaryColor}>
             <Toaster
@@ -183,6 +248,83 @@ const Form = () => {
                     }
                 }}
             />
+
+            {/* ✅ DELETE ACCOUNT MODAL */}
+            {showDeleteModal && (
+                <ModalOverlay onClick={handleCloseDeleteModal}>
+                    <ModalContent onClick={(e) => e.stopPropagation()}>
+                        <CloseButton onClick={handleCloseDeleteModal} disabled={isDeleting}>
+                            <X size={18} />
+                        </CloseButton>
+                        
+                        <div className="modal-header">
+                            <AlertTriangle size={40} />
+                            <h3>DELETE_ACCOUNT</h3>
+                        </div>
+                        
+                        <div className="modal-body">
+                            <div className="warning-box">
+                                <AlertTriangle size={16} />
+                                <p>THIS ACTION IS PERMANENT AND CANNOT BE UNDONE</p>
+                            </div>
+                            
+                            <p className="confirm-instruction">
+                                CONFIRM YOUR EMAIL TO PROCEED:
+                            </p>
+                            
+                            <div className="current-email">
+                                <Mail size={14} />
+                                <span>{userEmail}</span>
+                            </div>
+                            
+                            <div className="input-group">
+                                <label><Mail size={12} /> TYPE_EMAIL_TO_CONFIRM</label>
+                                <input
+                                    type="email"
+                                    placeholder="ENTER_YOUR_EMAIL"
+                                    value={deleteEmailInput}
+                                    onChange={(e) => {
+                                        setDeleteEmailInput(e.target.value);
+                                        setDeleteError("");
+                                    }}
+                                    disabled={isDeleting}
+                                    autoFocus
+                                />
+                            </div>
+                            
+                            {deleteError && <p className="error-text">{deleteError}</p>}
+                        </div>
+                        
+                        <div className="modal-actions">
+                            <button 
+                                className="cancel-btn" 
+                                onClick={handleCloseDeleteModal}
+                                disabled={isDeleting}
+                            >
+                                CANCEL_OPERATION
+                            </button>
+                            <button 
+                                className="delete-btn" 
+                                onClick={handleDeleteAccount}
+                                disabled={isDeleting}
+                            >
+                                {isDeleting ? (
+                                    <>
+                                        <Loader2 size={16} className="spinner-icon" />
+                                        DELETING...
+                                    </>
+                                ) : (
+                                    <>
+                                        <Trash2 size={16} />
+                                        CONFIRM_DELETE
+                                    </>
+                                )}
+                            </button>
+                        </div>
+                    </ModalContent>
+                </ModalOverlay>
+            )}
+
             <div className="wrapper">
                 {isAuth ? (
                     <div className="profile-card">
@@ -191,6 +333,7 @@ const Form = () => {
                             <div className="pulse-ring"></div>
                         </div>
                         <h2>{userName.toUpperCase()}</h2>
+                        <p className="user-email">{userEmail}</p>
                         <div className="status-badge">
                             <span className="dot"></span> SYSTEM_ONLINE
                         </div>
@@ -201,6 +344,13 @@ const Form = () => {
                             </button>
                             <button className="main-btn logout-btn" onClick={handleLogout} disabled={isLoggingOut}>
                                 <LogOut size={16} /> {isLoggingOut ? "EXITING..." : "TERMINATE_SESSION"}
+                            </button>
+                            {/* ✅ DELETE ACCOUNT BUTTON */}
+                            <button 
+                                className="main-btn delete-account-btn" 
+                                onClick={() => setShowDeleteModal(true)}
+                            >
+                                <Trash2 size={16} /> DELETE_ACCOUNT
                             </button>
                         </div>
                     </div>
@@ -401,7 +551,15 @@ const StyledWrapper = styled.div`
     position: relative;
     overflow: hidden;
 
-    h2 { letter-spacing: 4px; font-size: 1rem; margin: 20px 0; font-weight: 900; color: #fff; }
+    h2 { letter-spacing: 4px; font-size: 1rem; margin: 20px 0 8px; font-weight: 900; color: #fff; }
+    
+    .user-email {
+      font-size: 0.65rem;
+      color: #444;
+      letter-spacing: 1.5px;
+      margin-bottom: 20px;
+      font-weight: 500;
+    }
     
     .avatar-container {
       position: relative;
@@ -442,6 +600,24 @@ const StyledWrapper = styled.div`
     }
     
     .action-area { display: flex; flex-direction: column; gap: 12px; }
+  }
+
+  /* ✅ DELETE ACCOUNT BUTTON STYLING */
+  .delete-account-btn {
+    background: transparent !important;
+    border: 1px solid #ff003340 !important;
+    color: #ff0033 !important;
+
+    &:hover:not(:disabled) {
+      background: rgba(255, 0, 51, 0.1) !important;
+      border-color: #ff0033 !important;
+      color: #ff0033 !important;
+      transform: translateY(-2px);
+    }
+
+    &:disabled {
+      opacity: 0.3 !important;
+    }
   }
 
   /* --- Auth Container & Toggles --- */
@@ -532,6 +708,7 @@ const StyledWrapper = styled.div`
       font-size: 0.8rem; letter-spacing: 1px;
       &:focus { border-color: #fff; background: #000; box-shadow: 0 0 15px rgba(255,255,255,0.05); }
       &::placeholder { color: #222; }
+      &:disabled { opacity: 0.5; cursor: not-allowed; }
     }
     .otp-input {
         text-align: center; letter-spacing: 12px; font-size: 1.5rem; font-weight: 900; color: #fff;
@@ -585,6 +762,208 @@ const StyledWrapper = styled.div`
     .wrapper { max-width: 100%; }
     .title { font-size: 0.9rem; }
     .grid-2 { grid-template-columns: 1fr; gap: 0; }
+  }
+`;
+
+/* ✅ DELETE MODAL STYLES */
+const ModalOverlay = styled.div`
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.95);
+  backdrop-filter: blur(10px);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  animation: fadeIn 0.2s ease;
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+`;
+
+const ModalContent = styled.div`
+  background: #1E1E1E;
+  border: 1px solid #1a1a1a;
+  max-width: 500px;
+  width: 100%;
+  padding: 35px 30px;
+  position: relative;
+  animation: slideUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  @keyframes slideUp {
+    from { 
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to { 
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .modal-header {
+    text-align: center;
+    margin-bottom: 30px;
+
+    svg {
+      color: #ff0033;
+      filter: drop-shadow(0 0 10px rgba(255, 0, 51, 0.3));
+      margin-bottom: 15px;
+    }
+    
+    h3 {
+      font-size: 1rem;
+      font-weight: 900;
+      letter-spacing: 4px;
+      color: #fff;
+    }
+  }
+
+  .modal-body {
+    margin-bottom: 30px;
+
+    .warning-box {
+      background: rgba(255, 0, 51, 0.05);
+      border: 1px solid rgba(255, 0, 51, 0.3);
+      padding: 14px;
+      margin-bottom: 25px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+
+      svg {
+        color: #ff0033;
+        flex-shrink: 0;
+      }
+
+      p {
+        font-size: 0.65rem;
+        letter-spacing: 1px;
+        color: #ff0033;
+        font-weight: 700;
+        line-height: 1.4;
+      }
+    }
+
+    .confirm-instruction {
+      font-size: 0.7rem;
+      color: #666;
+      margin-bottom: 15px;
+      letter-spacing: 1.5px;
+      font-weight: 700;
+    }
+
+    .current-email {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 14px;
+      background: #0a0a0a;
+      border: 1px solid #222;
+      margin-bottom: 20px;
+      
+      svg {
+        color: #444;
+        flex-shrink: 0;
+      }
+
+      span {
+        font-size: 0.75rem;
+        color: #fff;
+        letter-spacing: 1px;
+        font-weight: 600;
+      }
+    }
+  }
+
+  .modal-actions {
+    display: flex;
+    gap: 12px;
+
+    button {
+      flex: 1;
+      padding: 16px;
+      font-family: 'JetBrains Mono', 'Inter', monospace;
+      font-size: 0.7rem;
+      font-weight: 900;
+      letter-spacing: 2px;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+
+      &:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+        transform: none !important;
+      }
+    }
+
+    .cancel-btn {
+      background: transparent;
+      border: 1px solid #333;
+      color: #666;
+
+      &:hover:not(:disabled) {
+        background: #0a0a0a;
+        border-color: #fff;
+        color: #fff;
+      }
+    }
+
+    .delete-btn {
+      background: #ff0033;
+      border: 1px solid #ff0033;
+      color: #fff;
+
+      &:hover:not(:disabled) {
+        background: #cc0000;
+        border-color: #cc0000;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(255, 0, 51, 0.4);
+      }
+    }
+  }
+
+  @media (max-width: 480px) {
+    padding: 25px 20px;
+
+    .modal-actions {
+      flex-direction: column;
+    }
+  }
+`;
+
+const CloseButton = styled.button`
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: transparent;
+  border: 1px solid #333;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #666;
+  transition: all 0.2s;
+
+  &:hover:not(:disabled) {
+    background: #0a0a0a;
+    border-color: #fff;
+    color: #fff;
+    transform: rotate(90deg);
+  }
+
+  &:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
   }
 `;
 
