@@ -575,7 +575,7 @@ const ApproachSection = styled.section`
 
     .section-label {
         font-size: 0.7rem;
-        color: #888;
+       color: #ff0033;
         margin-bottom: 60px;
         letter-spacing: 0.5em;
         font-weight: 900;
