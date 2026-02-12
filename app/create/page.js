@@ -98,6 +98,13 @@ const CreatePage = () => {
             return toast.error("Please fill in all fields");
         }
 
+        if (quizInfo.timeLimit) {
+        const timeVal = parseInt(quizInfo.questionPerMin);
+        if (!quizInfo.questionPerMin || isNaN(timeVal) || timeVal <= 0) {
+            return toast.error("Please specify Minutes per question for the timer");
+        }
+    }
+
         setLoading(true);
         const step1Payload = {
             duration: 0,
@@ -216,7 +223,7 @@ const CreatePage = () => {
                 // 1. Success path
                 toast.success("Quiz Published Successfully!");
                 // We use router.replace to avoid back-button loops
-                router.push(`/dashboard`);
+               window.location.href = `/dashboard`;
             } else {
                 // 2. Handle server errors (e.g., 400, 500)
                 const errorData = await response.json().catch(() => ({}));
