@@ -101,29 +101,33 @@ const ResultModal = ({ quizId, onClose }) => {
   doc.save(`Quiz_Result_${quizId}.pdf`);
 
   // 2. NEW: Delete the data from the server so it can't be fetched again
-  try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/Delete/Result/${quizId}`, {
-      method: 'DELETE', // Change this to DELETE
-      headers: { 
-        'Content-Type': 'application/json',
-        'ngrok-skip-browser-warning': 'true' 
-      }
-    });
-
-    if (response.ok) {
-      // 3. Clear UI state only AFTER server confirms deletion
-      setResults([]);
-      toast.success("PDF Downloaded & Server records cleared.");
-    } else {
-      // If server delete fails, we still clear UI for this session
-      setResults([]);
-      toast.error("Downloaded, but server failed to clear data.");
-    }
-  } catch (err) {
-    console.error("Cleanup error:", err);
-    setResults([]);
-  }
+  
 };
+
+  const handleDeleteResults = async () => {
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/Delete/Result/${quizId}`, {
+        method: 'DELETE', // Change this to DELETE
+        headers: {
+          'Content-Type': 'application/json',
+          'ngrok-skip-browser-warning': 'true'
+        }
+      });
+
+      if (response.ok) {
+        // 3. Clear UI state only AFTER server confirms deletion
+        setResults([]);
+        toast.success("PDF Downloaded & Server records cleared.");
+      } else {
+        // If server delete fails, we still clear UI for this session
+        setResults([]);
+        toast.error("Downloaded, but server failed to clear data.");
+      }
+    } catch (err) {
+      console.error("Cleanup error:", err);
+      setResults([]);
+    }
+  };
 
   return (
     <ModalOverlay initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
@@ -135,6 +139,11 @@ const ResultModal = ({ quizId, onClose }) => {
               <DownloadBtn onClick={downloadPDF} title="Exam Result PDF">
                 <Download size={18} />
               </DownloadBtn>
+            )}
+            {results.length > 0 && (
+              <DeleteResultsBtn onClick={handleDeleteResults} title="Delete All Results">
+                <Trash2 size={18} />
+              </DeleteResultsBtn>
             )}
             <button onClick={onClose}><X size={20} /></button>
           </div>
@@ -1353,6 +1362,22 @@ const DownloadBtn = styled.button`
   &:hover {
     background: #fff;  /* CHANGE: was #000 */
     color: #000;  /* CHANGE: was #fff */
+  }
+`;
+
+const DeleteResultsBtn = styled.button`
+  background: transparent;
+  border: 2px solid #ff4d4f;
+  color: #ff4d4f;
+  padding: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &:hover {
+    background: #ff4d4f;
+    color: #fff;
   }
 `;
 
