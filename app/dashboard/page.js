@@ -117,11 +117,11 @@ const ResultModal = ({ quizId, onClose }) => {
       if (response.ok) {
         // 3. Clear UI state only AFTER server confirms deletion
         setResults([]);
-        toast.success("PDF Downloaded & Server records cleared.");
+        toast.success(" Server records cleared.");
       } else {
         // If server delete fails, we still clear UI for this session
         setResults([]);
-        toast.error("Downloaded, but server failed to clear data.");
+        toast.error("Server failed to clear data.");
       }
     } catch (err) {
       console.error("Cleanup error:", err);

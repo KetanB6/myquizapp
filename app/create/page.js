@@ -68,7 +68,7 @@ const CreatePage = () => {
             else if (q.correctOpt === q.opt2) detectedCorrect = "b";
             else if (q.correctOpt === q.opt3) detectedCorrect = "c";
             else if (q.correctOpt === q.opt4) detectedCorrect = "d";
-            
+
             if (!detectedCorrect) {
                 const rawCorrect = String(q.correctOpt).toLowerCase();
                 const letters = ['a', 'b', 'c', 'd'];
@@ -136,58 +136,58 @@ const CreatePage = () => {
         }
     };
 
-   const handleAISynthesis = async (isLoadMore = false) => {
-    if (!quizInfo.quizTitle) return toast.error("Title required for AI generation");
-    setIsSynthesizing(true);
-    const toastId = toast.loading(isLoadMore ? "Fetching more questions..." : "AI is generating questions...");
+    const handleAISynthesis = async (isLoadMore = false) => {
+        if (!quizInfo.quizTitle) return toast.error("Title required for AI generation");
+        setIsSynthesizing(true);
+        const toastId = toast.loading(isLoadMore ? "Fetching more questions..." : "AI is generating questions...");
 
-    try {
-        const response = await fetch('https://quizbyapi.onrender.com/api/v1/Generate', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                topic: quizInfo.quizTitle,
-                count: 10,
-                difficulty: 'Moderate',
-                language: 'English'
-            })
-        });
-
-        const data = await response.json();
-        const newAIQuestions = mapAIResponse(data);
-
-        if (isLoadMore) {
-            // Create a Set of existing question texts (normalized for comparison)
-            const existingQuestions = new Set(
-                questions.map(q => q.question.toLowerCase().trim())
-            );
-
-            // Filter out duplicates
-            const uniqueNewQuestions = newAIQuestions.filter(newQ => {
-                const normalizedQuestion = newQ.question.toLowerCase().trim();
-                return !existingQuestions.has(normalizedQuestion);
+        try {
+            const response = await fetch('https://quizbyapi.onrender.com/api/v1/Generate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    topic: quizInfo.quizTitle,
+                    count: 10,
+                    difficulty: 'Moderate',
+                    language: 'English'
+                })
             });
 
-            if (uniqueNewQuestions.length === 0) {
-                toast.error("All generated questions are duplicates. Try again.", { id: toastId });
-                return;
-            }
+            const data = await response.json();
+            const newAIQuestions = mapAIResponse(data);
 
-            const previousCount = questions.length;
-            setQuestions(prev => [...prev, ...uniqueNewQuestions]);
-            setCurrentSlide(previousCount);
-            toast.success(`Added ${uniqueNewQuestions.length} unique questions!`, { id: toastId });
-        } else {
-            setQuestions(newAIQuestions);
-            setCurrentSlide(0);
-            toast.success("AI Generation Complete!", { id: toastId });
+            if (isLoadMore) {
+                // Create a Set of existing question texts (normalized for comparison)
+                const existingQuestions = new Set(
+                    questions.map(q => q.question.toLowerCase().trim())
+                );
+
+                // Filter out duplicates
+                const uniqueNewQuestions = newAIQuestions.filter(newQ => {
+                    const normalizedQuestion = newQ.question.toLowerCase().trim();
+                    return !existingQuestions.has(normalizedQuestion);
+                });
+
+                if (uniqueNewQuestions.length === 0) {
+                    toast.error("All generated questions are duplicates. Try again.", { id: toastId });
+                    return;
+                }
+
+                const previousCount = questions.length;
+                setQuestions(prev => [...prev, ...uniqueNewQuestions]);
+                setCurrentSlide(previousCount);
+                toast.success(`Added ${uniqueNewQuestions.length} unique questions!`, { id: toastId });
+            } else {
+                setQuestions(newAIQuestions);
+                setCurrentSlide(0);
+                toast.success("AI Generation Complete!", { id: toastId });
+            }
+        } catch (error) {
+            toast.error("AI Service Unavailable", { id: toastId });
+        } finally {
+            setIsSynthesizing(false);
         }
-    } catch (error) {
-        toast.error("AI Service Unavailable", { id: toastId });
-    } finally {
-        setIsSynthesizing(false);
-    }
-};
+    };
 
     const handlePublish = async () => {
         if (questions.some(q => !q.question || !q.correct)) {
@@ -213,11 +213,20 @@ const CreatePage = () => {
             });
 
             if (response.ok) {
+                // 1. Success path
                 toast.success("Quiz Published Successfully!");
+                // We use router.replace to avoid back-button loops
                 router.push(`/dashboard`);
+            } else {
+                // 2. Handle server errors (e.g., 400, 500)
+                const errorData = await response.json().catch(() => ({}));
+                toast.error(errorData.message || "Failed to publish quiz");
             }
         } catch (error) {
-            toast.error("Error saving questions");
+            // 3. Handle network/crash errors
+            // Only show this if the response wasn't already handled
+            console.error("Publishing error:", error);
+            toast.error("Network error: Could not connect to server");
         } finally {
             setLoading(false);
         }
@@ -272,7 +281,7 @@ const CreatePage = () => {
                             {quizInfo.timeLimit && (
                                 <FormGroup>
                                     <label><Clock size={12} /> MINUTES PER QUESTION</label>
-                                    <input type="number" className="zolvi-input" value={quizInfo.questionPerMin || 1} onChange={(e) => handleInfoChange('questionPerMin', e.target.value)} placeholder="e.g. 1" />
+                                    <input type="number" className="zolvi-input" value={quizInfo.questionPerMin} onChange={(e) => handleInfoChange('questionPerMin', e.target.value)} placeholder="e.g. 1" />
                                 </FormGroup>
                             )}
 
@@ -331,9 +340,9 @@ const CreatePage = () => {
 
                                 <FormGroup style={{ marginTop: '10px', borderTop: `1px solid ${theme.border}`, paddingTop: '15px' }}>
                                     <label><CheckCircle size={12} color={theme.success} /> ASSIGNED CORRECT OPTION</label>
-                                    <select 
-                                        className="zolvi-input" 
-                                        value={questions[currentSlide].correct} 
+                                    <select
+                                        className="zolvi-input"
+                                        value={questions[currentSlide].correct}
                                         onChange={(e) => updateQuestion('correct', e.target.value)}
                                         style={{ color: theme.success, fontWeight: 'bold' }}
                                     >
