@@ -215,7 +215,7 @@ const LandingPage = () => {
                             <div className="dev-credit">
                                 <span className="role">BACKEND:</span>
                                 <a
-                                    href="https://www.linkedin.com/in/ketan-bidave-08397430a/?originalSubdomain=in"
+                                    href="https://ketanbidave.vercel.app/"
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="dev-link"

@@ -137,26 +137,26 @@ const AIGenerator = () => {
                 <GeneratorWrapper>
                     <NoirCard>
                         <Header>
-                            <div className="limit-chip">SYS_STS: {remainingAttempts > 0 ? 'READY' : 'COOLDOWN'} // ATMP: {remainingAttempts}</div>
+                            <div className="limit-chip">STATUS: {remainingAttempts > 0 ? 'READY' : 'COOLDOWN'} || CHANCES: {remainingAttempts}</div>
                             <BrandIcon><Cpu size={32} /></BrandIcon>
                             <div className="text-wrapper">
                                 <h2>AI_QUIZ</h2>
-                                <p>NEURAL_CORE_v2.06 // SESSION_ESTABLISHED</p>
+                                <p>Generate questions by AI and compete in real-time challenges.</p>
                             </div>
                         </Header>
 
                         <FormGrid>
                             <InputGroup>
-                                <label><Terminal size={12} /> TOPIC_INPUT_MODULE</label>
+                                <label><Terminal size={12} /> ENTER TOPIC NAME</label>
                                 <input
-                                    placeholder="Enter Protocol Topic..."
+                                    placeholder="Enter Your Topic..."
                                     value={formData.topic}
                                     onChange={(e) => setFormData({ ...formData, topic: e.target.value })}
                                 />
                             </InputGroup>
 
                             <InputGroup>
-                                <label><Zap size={12} /> COMPLEXITY_CALIBRATION</label>
+                                <label><Zap size={12} /> Enter Your Level</label>
                                 <div className="pill-container">
                                     {['Easy', 'Moderate', 'Hard'].map((level) => (
                                         <Pill key={level} $active={formData.difficulty === level} onClick={() => setFormData({ ...formData, difficulty: level })}>
@@ -167,7 +167,7 @@ const AIGenerator = () => {
                             </InputGroup>
 
                             <InputGroup>
-                                <label><Globe size={12} /> LANG_INTERFACE</label>
+                                <label><Globe size={12} /> SELCET LANGUAGE</label>
                                 <div className="pill-container">
                                     {['English', 'Hindi', 'Marathi'].map((lang) => (
                                         <Pill
@@ -182,20 +182,11 @@ const AIGenerator = () => {
                             </InputGroup>
 
                             <PrimaryButton onClick={handleGenerate} disabled={isLoading || !formData.topic}>
-                                {isLoading ? <Loader2 size={16} className="spinner" /> : "INITIATE_SEQUENCE"}
+                                {isLoading ? <Loader2 size={16} className="spinner" /> : "GET QUESTIONS"}
                             </PrimaryButton>
                         </FormGrid>
                     </NoirCard>
-                    <StatusSidebar>
-                        <StatusBox>
-                            <Activity size={16} />
-                            <span>NET_STATUS: NOMINAL</span>
-                        </StatusBox>
-                        <StatusBox>
-                            <ShieldCheck size={16} />
-                            <span>SEC_LEVEL: CLASS_A</span>
-                        </StatusBox>
-                    </StatusSidebar>
+                  
                 </GeneratorWrapper>
             ) : (
                 <ResultContainer $isSubmitted={isSubmitted}>
