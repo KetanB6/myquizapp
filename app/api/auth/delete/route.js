@@ -2,11 +2,13 @@ import connectToDatabase from "@/lib/mongodb";
 import User from "@/models/UserQuiz";
 import jwt from "jsonwebtoken";
 import { NextResponse } from "next/server";
+import Session from "@/models/Session";
+import { apiRequest } from '@/lib/api';
 
 export async function DELETE(req) {
   try {
     await connectToDatabase();
-    
+
     // Get authorization token from headers
     const authHeader = req.headers.get("authorization");
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
@@ -17,7 +19,7 @@ export async function DELETE(req) {
     }
 
     const token = authHeader.split(" ")[1];
-    
+
     // Verify JWT token
     let decoded;
     try {
@@ -41,7 +43,7 @@ export async function DELETE(req) {
 
     // Find the user
     const user = await User.findById(decoded.userId);
-    
+
     if (!user) {
       return NextResponse.json(
         { message: "User not found" },
@@ -59,11 +61,11 @@ export async function DELETE(req) {
 
     // Delete the user from database
     await User.findByIdAndDelete(decoded.userId);
-    req.setHeader('Set-Cookie', 'token=; Path=/; HttpOnly; Max-Age=0; SameSite=Strict');
+    await Session.deleteMany({ userId: decoded.userId });
     return NextResponse.json(
-      { 
+      {
         message: "Account deleted successfully",
-        deleted: true 
+        deleted: true
       },
       { status: 200 }
     );

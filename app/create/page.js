@@ -150,7 +150,7 @@ const CreatePage = () => {
         const toastId = toast.loading(isLoadMore ? "Fetching more questions..." : "AI is generating questions...");
 
         try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/Generate`, {
+            const response = await fetch(`https://quizbyapi.onrender.com/api/v1/Generate`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

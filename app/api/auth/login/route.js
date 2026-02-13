@@ -3,43 +3,68 @@ import User from "@/models/UserQuiz";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { NextResponse } from "next/server";
+import Session from "@/models/Session";
+import { v4 as uuidv4 } from 'uuid';
 
 export async function POST(req) {
   try {
     await connectToDatabase();
+
+    // 1. Get the login details from the request body FIRST
     const { email, password } = await req.json();
 
-    // Find user by email
+    // 2. NOW find the user in the database
+    // We must do this before we can use "user._id"
     const user = await User.findOne({ email });
     if (!user) {
-      return NextResponse.json({ message: "User not found with this email" }, { status: 401 });
+      return NextResponse.json(
+        { message: "User not found with this email" }, 
+        { status: 401 }
+      );
     }
 
-    // Verify password
+    // 3. Verify if the password is correct
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      return NextResponse.json({ message: "Password Incorrect" }, { status: 401 });
+      return NextResponse.json(
+        { message: "Invalid credentials" }, 
+        { status: 401 }
+      );
     }
 
-    // Generate JWT token with user ID
-    // ✅ This userId is used in the delete endpoint to verify user identity
+    // 4. Generate a unique Session ID
+    const newSessionId = uuidv4(); 
+
+    // 5. SAVE the session to MongoDB
+    // Now "user._id" is available because we found the user in step 2
+    await Session.create({
+      userId: user._id,
+      email: user.email,
+      sessionId: newSessionId
+    });
+
+    // 6. Generate the JWT token containing the sessionId
     const token = jwt.sign(
-      { userId: user._id },
+      { userId: user._id, sessionId: newSessionId }, 
       process.env.JWT_SECRET,
       { expiresIn: "7d" }
     );
 
-    // Return token and user data
-    // ✅ The email is stored in localStorage and used for delete verification
+    // 7. Return the successful response
     return NextResponse.json({
       token,
-      user: { 
-        name: user.name, 
-        email: user.email  // ✅ Email returned here for frontend display
+      user: {
+        name: user.name,
+        email: user.email
       }
     }, { status: 200 });
+
   } catch (error) {
+    // This will catch any unexpected errors
     console.error("LOGIN_ERROR:", error);
-    return NextResponse.json({ message: "Internal Server Error" }, { status: 500 });
+    return NextResponse.json(
+      { message: "Internal Server Error" }, 
+      { status: 500 }
+    );
   }
 }

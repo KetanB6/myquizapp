@@ -285,7 +285,6 @@ const Form = () => {
               }
             } catch (err) {
               console.error("Cleanup error:", err);
-              setResults([]);
             }
     };
 
