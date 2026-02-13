@@ -82,7 +82,6 @@ const AIGenerator = () => {
         } else {
             setCurrentQuestionIdx(prev => prev + 1);
             setTimeLeft(SECONDS_PER_QUESTION);
-            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
     };
 
@@ -96,7 +95,7 @@ const AIGenerator = () => {
             return;
         }
         try {
-            const response = await fetch(`https://quizbyapi.onrender.com/api/v1/Generate`, {
+            const response = await fetch(`https://noneditorial-professionally-serena.ngrok-free.dev/api/v1/Generate`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json',
                   'X-API-KEY': 'Haisenberg'
@@ -121,7 +120,6 @@ const AIGenerator = () => {
         quizData.forEach((q, idx) => { if (userAnswers[idx] === q.correctOpt) currentScore++; });
         setScore(currentScore);
         setIsSubmitted(true);
-        window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
     return (
@@ -277,7 +275,6 @@ const scan = keyframes` 0% { top: 0% } 100% { top: 100% } `;
 
 const PageContainer = styled.div`
   min-height: 100vh;
-  height: 100vh;
   background: ${theme.bg};
   color: ${theme.text};
   font-family: ${theme.font};
@@ -286,14 +283,12 @@ const PageContainer = styled.div`
   align-items: center;
   position: relative;
   overflow: hidden;
-  padding: 0;
+  padding: 20px;
 
   @media (max-width: 767px) {
     padding: 15px;
     align-items: flex-start;
     overflow-y: auto;
-    height: auto;
-    min-height: 100vh;
   }
 `;
 
@@ -329,32 +324,6 @@ const GeneratorWrapper = styled.div`
     margin-top: 20px;
     margin-bottom: 20px;
   }
-`;
-
-const StatusSidebar = styled.div`
-  display: flex;
-  flex-direction: row;
-  gap: 10px;
-
-  @media (min-width: 1024px) {
-    flex-direction: column;
-    width: 220px;
-  }
-`;
-
-const StatusBox = styled.div`
-  flex: 1;
-  background: ${theme.surface};
-  border: 1px solid ${theme.border};
-  padding: 12px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 0.65rem;
-  color: ${theme.muted};
-  font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 1px;
 `;
 
 const NoirCard = styled.div`
@@ -528,18 +497,15 @@ const ResultContainer = styled.div`
   z-index: 1;
   display: flex;
   flex-direction: column;
-  height: ${p => p.$isSubmitted ? 'auto' : '100vh'};
-  max-height: ${p => p.$isSubmitted ? 'none' : '100vh'};
+  /* FIXED: Better height calculation for desktop */
+  height: ${p => p.$isSubmitted ? 'auto' : 'calc(100vh - 40px)'};
+  max-height: ${p => p.$isSubmitted ? 'none' : 'calc(100vh - 40px)'};
 
   @media (max-width: 767px) {
     height: auto;
     max-height: none;
-    padding-top: 20px;
+    padding-top: 0;
     padding-bottom: 20px;
-  }
-
-  @media (min-width: 768px) {
-    padding: ${p => p.$isSubmitted ? '40px 20px' : '20px'};
   }
 `;
 
@@ -549,12 +515,16 @@ const ResultHeader = styled.div`
   gap: 15px;
   margin-bottom: 20px;
   flex-shrink: 0;
+  padding: 0 20px;
 
   @media (min-width: 768px) {
     flex-direction: row;
     justify-content: space-between;
     align-items: flex-end;
-    margin-bottom: 30px;
+  }
+
+  @media (max-width: 767px) {
+    padding: 0;
   }
 
   .title-area {
@@ -592,6 +562,11 @@ const TimerWrapper = styled.div`
   border-radius: 10px;
   overflow: hidden;
   flex-shrink: 0;
+
+  @media (min-width: 768px) {
+    margin: 0 20px 20px 20px;
+    width: calc(100% - 40px);
+  }
 `;
 
 const TimerBarFill = styled.div`
@@ -603,32 +578,32 @@ const TimerBarFill = styled.div`
 `;
 
 const QuizContent = styled.div`
+  /* FIXED: Proper scrolling for both states */
   flex: 1;
-  overflow-y: ${p => p.$isSubmitted ? 'visible' : 'auto'};
+  overflow-y: ${p => p.$isSubmitted ? 'auto' : 'auto'};
   overflow-x: hidden;
   min-height: 0;
+  padding: 0 20px;
 
   @media (max-width: 767px) {
-    overflow-y: visible;
+    padding: 0;
   }
 
-  /* Custom scrollbar for desktop */
-  @media (min-width: 768px) {
-    &::-webkit-scrollbar {
-      width: 6px;
-    }
+  /* Custom scrollbar */
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
 
-    &::-webkit-scrollbar-track {
-      background: ${theme.surface};
-    }
+  &::-webkit-scrollbar-track {
+    background: ${theme.surface};
+  }
 
-    &::-webkit-scrollbar-thumb {
-      background: ${theme.border};
-      border-radius: 3px;
+  &::-webkit-scrollbar-thumb {
+    background: ${theme.border};
+    border-radius: 3px;
 
-      &:hover {
-        background: ${theme.muted};
-      }
+    &:hover {
+      background: ${theme.muted};
     }
   }
 `;
@@ -637,9 +612,12 @@ const QuestionGrid = styled.div`
   display: flex;
   flex-direction: column;
   gap: 20px;
+  /* FIXED: Add padding bottom so last question isn't cut off */
+  padding-bottom: ${p => p.$isSubmitted ? '0' : '20px'};
 
   @media (max-width: 767px) {
     gap: 15px;
+    padding-bottom: 0;
   }
 `;
 
@@ -765,12 +743,16 @@ const Option = styled.div`
 `;
 
 const QuizFooter = styled.div`
-  padding-top: 20px;
+  /* FIXED: Always visible, sticky at bottom */
+  padding: 20px;
   flex-shrink: 0;
+  background: ${theme.bg};
+  border-top: 1px solid ${theme.border};
 
   @media (max-width: 767px) {
-    padding-top: 15px;
-    padding-bottom: 20px;
+    padding: 15px 0;
+    background: transparent;
+    border-top: none;
   }
 `;
 
@@ -778,7 +760,6 @@ const SubmitButton = styled(PrimaryButton)`
   width: 100%;
   max-width: 500px;
   margin: 0 auto;
-  margin-top:-100px;
   clip-path: polygon(0 0, 95% 0, 100% 30%, 100% 100%, 5% 100%, 0 70%);
 
   @media (max-width: 767px) {
