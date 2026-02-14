@@ -95,7 +95,7 @@ const AIGenerator = () => {
             return;
         }
         try {
-            const response = await fetch(`https://noneditorial-professionally-serena.ngrok-free.dev/api/v1/Generate`, {
+            const response = await fetch(`https://quizbyapi.onrender.com/api/v1/Generate`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json',
                   'X-API-KEY': 'Haisenberg'
