@@ -22,7 +22,7 @@ const theme = {
 
 const SECONDS_PER_QUESTION = 60;
 const PLAY_LIMIT = 3;
-const COOLDOWN_HOURS = 2;
+const COOLDOWN_MS = 2 * 60 * 60 * 1000;;
 
 const AIGenerator = () => {
     // --- LOGIC PRESERVED ---
@@ -41,27 +41,56 @@ const AIGenerator = () => {
         difficulty: 'Moderate',
         language: 'English'
     });
+    const getDeviceFingerprint = () => {
+    const { userAgent, language, hardwareConcurrency } = window.navigator;
+    const { width, height, colorDepth } = window.screen;
+    const timezone = new Date().getTimezoneOffset();
+    
+    // Combine traits into one unique string
+    const id = `${userAgent}|${language}|${hardwareConcurrency}|${width}x${height}|${colorDepth}|${timezone}`;
+    return btoa(id).slice(0, 32); // Convert to a short Base64 string
+};
 
     const checkRateLimit = async () => {
-        try {
-            const res = await fetch('https://api.ipify.org?format=json');
-            const { ip } = await res.json();
-            const storageKey = `quiz_limit_${ip}`;
-            const localData = JSON.parse(localStorage.getItem(storageKey) || '{"count": 0, "resetTime": 0}');
-            const now = Date.now();
+    try {
+        const fingerprint = getDeviceFingerprint();
+        const storageKey = `quiz_limit_${fingerprint}`;
+        const localData = JSON.parse(localStorage.getItem(storageKey) || '{"count": 0, "resetTime": 0}');
+        const now = Date.now();
 
-            if (localData.resetTime > 0 && now > localData.resetTime) {
-                const freshData = { count: 0, resetTime: 0 };
-                localStorage.setItem(storageKey, JSON.stringify(freshData));
-                setRemainingAttempts(PLAY_LIMIT);
-                return { allowed: true, data: freshData, key: storageKey };
-            }
-            setRemainingAttempts(Math.max(0, PLAY_LIMIT - localData.count));
-            return { allowed: localData.count < PLAY_LIMIT, data: localData, key: storageKey };
-        } catch (e) {
-            return { allowed: true, data: { count: 0 }, key: 'fallback' };
+        // 1. Check if the 2-hour cooldown has finished
+        if (localData.resetTime > 0 && now > localData.resetTime) {
+            const freshData = { count: 0, resetTime: 0 };
+            localStorage.setItem(storageKey, JSON.stringify(freshData));
+            setRemainingAttempts(PLAY_LIMIT);
+            return { allowed: true, data: freshData, key: storageKey };
         }
-    };
+
+        // 2. If the user is currently in a cooldown period
+        if (localData.resetTime > 0 && now < localData.resetTime) {
+            const diff = localData.resetTime - now;
+            const hours = Math.floor(diff / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            
+            toast.error(`Limit reached! Try again in ${hours}h ${minutes}m`);
+            setRemainingAttempts(0);
+            return { allowed: false, data: localData, key: storageKey };
+        }
+
+        // 3. Regular check: Do they have attempts left?
+        const attemptsLeft = Math.max(0, PLAY_LIMIT - localData.count);
+        setRemainingAttempts(attemptsLeft);
+
+        if (attemptsLeft === 0) {
+            toast.error("No attempts left. Try again in 2 hours.");
+            return { allowed: false, data: localData, key: storageKey };
+        }
+
+        return { allowed: true, data: localData, key: storageKey };
+    } catch (e) {
+        return { allowed: true, data: { count: 0 }, key: 'fallback' };
+    }
+};
 
     useEffect(() => { checkRateLimit(); }, []);
 
@@ -85,35 +114,71 @@ const AIGenerator = () => {
         }
     };
 
-    const handleGenerate = async () => {
-        if (!formData.topic) { toast.error("TOPIC_REQUIRED"); return; }
-        setIsLoading(true);
-        const limitStatus = await checkRateLimit();
-        if (!limitStatus.allowed) {
-            toast.error("SYSTEM_LIMIT_REACHED");
-            setIsLoading(false);
-            return;
+   const handleGenerate = async () => {
+    // 1. Basic Validation
+    if (!formData.topic) { 
+        toast.error("Please enter a topic first!"); 
+        return; 
+    }
+
+    setIsLoading(true);
+
+    // 2. Check Device-Based Rate Limit
+    const limitStatus = await checkRateLimit();
+    if (!limitStatus.allowed) {
+        // The toast with the remaining time is already handled inside checkRateLimit
+        setIsLoading(false);
+        return;
+    }
+
+    try {
+        // 3. Call the API
+        const response = await fetch(`https://quizbyapi.onrender.com/api/v1/Generate`, {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json',
+                'X-API-KEY': 'Haisenberg' // Your friend's key
+            },
+            body: JSON.stringify(formData)
+        });
+
+        if (!response.ok) throw new Error("API_ERROR");
+
+        const data = await response.json();
+
+        // 4. Set Quiz Data and Start Timer
+        setQuizData(data);
+        setCurrentQuestionIdx(0); // Ensure we start at the first question
+        setTimeLeft(SECONDS_PER_QUESTION); // Reset timer to 30s
+
+        // 5. "Burn" one attempt and set 2-hour cooldown if it was the last one
+        const newCount = limitStatus.data.count + 1;
+        const cooldownActive = newCount >= PLAY_LIMIT;
+        
+        // Calculate reset time (Now + 2 hours)
+        const resetTime = cooldownActive ? Date.now() + (2 * 60 * 60 * 1000) : 0;
+
+        localStorage.setItem(limitStatus.key, JSON.stringify({
+            count: newCount,
+            resetTime: resetTime
+        }));
+
+        // 6. Update the Frontend UI for remaining chances
+        setRemainingAttempts(Math.max(0, PLAY_LIMIT - newCount));
+
+        if (cooldownActive) {
+            toast.success("Quiz Generated! Note: This is your last attempt for 2 hours.");
+        } else {
+            toast.success("Quiz Generated successfully!");
         }
-        try {
-            const response = await fetch(`https://quizbyapi.onrender.com/api/v1/Generate`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json',
-                  'X-API-KEY': 'Haisenberg'
-                 },
-                body: JSON.stringify(formData)
-            });
-            const data = await response.json();
-            setQuizData(data);
-            setTimeLeft(SECONDS_PER_QUESTION);
-            const newCount = limitStatus.data.count + 1;
-            localStorage.setItem(limitStatus.key, JSON.stringify({
-                count: newCount,
-                resetTime: newCount >= PLAY_LIMIT ? Date.now() + (COOLDOWN_HOURS * 3600000) : 0
-            }));
-            setRemainingAttempts(PLAY_LIMIT - newCount);
-        } catch (error) { toast.error("SYNTHESIS_FAILED"); }
-        finally { setIsLoading(false); }
-    };
+
+    } catch (error) { 
+        console.error(error);
+        toast.error("Failed to generate quiz. Please try again."); 
+    } finally { 
+        setIsLoading(false); 
+    }
+};
 
     const handleSubmitExam = () => {
         let currentScore = 0;
@@ -124,7 +189,6 @@ const AIGenerator = () => {
 
     return (
         <PageContainer>
-            <Toaster position="bottom-right" toastOptions={{ style: { background: '#000', color: '#fff', border: `1px solid ${theme.border}`, borderRadius: '0px', fontFamily: theme.font } }} />
 
             <BackgroundDecor>
                 <div className="grid-overlay" />
@@ -180,7 +244,7 @@ const AIGenerator = () => {
                             </InputGroup>
 
                             <PrimaryButton onClick={handleGenerate} disabled={isLoading || !formData.topic}>
-                                {isLoading ? <Loader2 size={16} className="spinner" /> : "GET QUESTIONS"}
+                                {isLoading ? <Loader2 size={16} className="spinner" /> : "START_QUIZ"}
                             </PrimaryButton>
                         </FormGrid>
                     </NoirCard>

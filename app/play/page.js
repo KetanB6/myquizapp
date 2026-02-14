@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect, Suspense } from 'react'; // Added Suspense
 import styled, { keyframes, css, createGlobalStyle } from 'styled-components';
-import { Zap, Loader2,EyeOff,MonitorSmartphone, Trophy, RefreshCcw, User, Hash, CheckCircle2,AlertTriangle, XCircle, Timer, ChevronRight, ShieldAlert } from 'lucide-react';
+import { Zap, Loader2, EyeOff, MonitorSmartphone, Trophy, RefreshCcw, User, Hash, CheckCircle2, AlertTriangle, XCircle, Timer, ChevronRight, ShieldAlert } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
 import { useSearchParams, useRouter } from 'next/navigation';
 
@@ -37,21 +37,21 @@ const PlayQuizContent = () => { // Renamed internal component
     // --- FIX: Initialize state with URL param directly ---
     const [joinData, setJoinData] = useState({
         participantName: '',
-        quizId: '' 
+        quizId: ''
     });
 
     // --- FIX: Sync state if URL changes after mount ---
-   useEffect(() => {
-    const qId = searchParams.get('quizId');
-    if (qId) {
-        // We use the functional update to ensure we don't wipe participantName
-        setJoinData(prev => ({
-            ...prev,
-            quizId: qId
-        }));
-        toast.success("ID Captured from URL: " + qId); // Debugging
-    }
-}, [searchParams]);
+    useEffect(() => {
+        const qId = searchParams.get('quizId');
+        if (qId) {
+            // We use the functional update to ensure we don't wipe participantName
+            setJoinData(prev => ({
+                ...prev,
+                quizId: qId
+            }));
+            toast.success("ID Captured from URL: " + qId); // Debugging
+        }
+    }, [searchParams]);
 
     // --- SECURITY LAYER ---
     useEffect(() => {
@@ -130,13 +130,26 @@ const PlayQuizContent = () => { // Renamed internal component
             toast.error("CREDENTIALS REQUIRED");
             return;
         }
+
+        // --- SECURITY CHECK: PREVENT RE-ENTRY ---
+        const fingerprint = getDeviceFingerprint();
+        const lockKey = `quiz_lock_${joinData.quizId}_${fingerprint}`;
+        const isLocked = localStorage.getItem(lockKey);
+
+        if (isLocked) {
+            toast.error("ACCESS DENIED: You have already attempted or exited this quiz.");
+            return;
+        }
+        // ----------------------------------------
+
         setIsLoading(true);
         try {
             const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/Play/${joinData.quizId}/${joinData.participantName}`, {
                 method: 'GET',
-                headers: { 'ngrok-skip-browser-warning': '69420',
+                headers: {
+                    'ngrok-skip-browser-warning': '69420',
                     'X-API-KEY': 'Haisenberg'
-                 },
+                },
             });
 
             if (!response.ok) throw new Error(`ACCESS DENIED: Quiz inactive.`);
@@ -148,10 +161,15 @@ const PlayQuizContent = () => { // Renamed internal component
                 return;
             }
 
-            // TRIGGER FULLSCREEN (Must be inside user click event)
+            // --- LOCK THE QUIZ IMMEDIATELY ON JOIN ---
+            // This ensures they can't refresh to start over
+            localStorage.setItem(lockKey, "ACTIVE");
+            // -----------------------------------------
+
+            // TRIGGER FULLSCREEN
             if (document.documentElement.requestFullscreen) {
                 document.documentElement.requestFullscreen().catch(() => {
-                    console.log("Fullscreen blocked by browser policy");
+                    console.log("Fullscreen blocked");
                 });
             }
 
@@ -169,6 +187,17 @@ const PlayQuizContent = () => { // Renamed internal component
             setIsLoading(false);
         }
     };
+    useEffect(() => {
+        const handleSecurityBreach = () => {
+            if (!document.fullscreenElement && quizData) {
+                toast.error("SECURITY BREACH: Fullscreen exited. Submitting quiz...");
+                handleFinishQuiz(); // Force submit the quiz
+            }
+        };
+
+        document.addEventListener('fullscreenchange', handleSecurityBreach);
+        return () => document.removeEventListener('fullscreenchange', handleSecurityBreach);
+    }, [quizData]);
 
     const handleSelectOption = (questionIdx, optionText) => {
         if (isSubmitted) return;
@@ -176,9 +205,10 @@ const PlayQuizContent = () => { // Renamed internal component
     };
 
     const handleSubmitExam = async () => {
-        if (document.fullscreenElement) {
-            document.exitFullscreen().catch(() => {});
-        }
+        const fingerprint = getDeviceFingerprint();
+        const lockKey = `quiz_lock_${joinData.quizId}_${fingerprint}`;
+        localStorage.setItem(lockKey, "COMPLETED");
+        if (document.exitFullscreen) document.exitFullscreen();
 
         const questions = quizData.questions;
         let currentScore = 0;
@@ -197,16 +227,17 @@ const PlayQuizContent = () => { // Renamed internal component
         try {
             const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/Play/Submit`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': '69420',
+                headers: {
+                    'Content-Type': 'application/json', 'ngrok-skip-browser-warning': '69420',
                     'X-API-KEY': 'Haisenberg'
-                 },
+                },
                 body: JSON.stringify(finalSubmission)
             });
 
             if (response.ok) {
                 setScore(currentScore);
                 setIsSubmitted(true);
-                toast.success("DATA SYNCED");
+                toast.success("Quiz Submitted Successfully!");
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             } else throw new Error("SUBMISSION FAILED");
         } catch (error) {
@@ -215,50 +246,50 @@ const PlayQuizContent = () => { // Renamed internal component
             setIsLoading(false);
         }
     };
-   if (!hasAcceptedRules) {
-    return (
-        <PageContainer>
-            <EntryWrapper style={{ maxWidth: '700px' }}> {/* Wider wrapper for rules */}
-                <StatusTag><ShieldAlert size={12} /> PROTOCOL INITIALIZATION</StatusTag>
-                <ZolviEntryCard>
-                    <Header>
-                        <div className="icon-box"><AlertTriangle size={24} color="orange" /></div>
-                        <div>
-                            <h2>RULES OF ENGAGEMENT</h2>
-                            <p>STRICT ENFORCEMENT ACTIVE</p>
-                        </div>
-                    </Header>
+    if (!hasAcceptedRules) {
+        return (
+            <PageContainer>
+                <EntryWrapper style={{ maxWidth: '700px' }}> {/* Wider wrapper for rules */}
+                    <StatusTag><ShieldAlert size={12} /> PROTOCOL INITIALIZATION</StatusTag>
+                    <ZolviEntryCard>
+                        <Header>
+                            <div className="icon-box"><AlertTriangle size={24} color="orange" /></div>
+                            <div>
+                                <h2>RULES OF ENGAGEMENT</h2>
+                                <p>STRICT ENFORCEMENT ACTIVE</p>
+                            </div>
+                        </Header>
 
-                    <RulesList>
-                        <RuleItem>
-                            <div className="rule-header"><Zap size={14}/> Anti-Cheat</div>
-                            <div className="rule-desc">Tab switching or window resizing triggers immediate disqualification.</div>
-                        </RuleItem>
+                        <RulesList>
+                            <RuleItem>
+                                <div className="rule-header"><Zap size={14} /> Anti-Cheat</div>
+                                <div className="rule-desc">Tab switching or window resizing triggers immediate disqualification.</div>
+                            </RuleItem>
 
-                        <RuleItem>
-                            <div className="rule-header"><EyeOff size={14}/> Surveillance</div>
-                            <div className="rule-desc">Active monitoring of cursor movements and focus state is enabled.</div>
-                        </RuleItem>
+                            <RuleItem>
+                                <div className="rule-header"><EyeOff size={14} /> Surveillance</div>
+                                <div className="rule-desc">Active monitoring of cursor movements and focus state is enabled.</div>
+                            </RuleItem>
 
-                        <RuleItem>
-                            <div className="rule-header"><MonitorSmartphone size={14}/> Display</div>
-                            <div className="rule-desc">System forces Fullscreen Mode. Exiting will terminate the arena.</div>
-                        </RuleItem>
+                            <RuleItem>
+                                <div className="rule-header"><MonitorSmartphone size={14} /> Display</div>
+                                <div className="rule-desc">System forces Fullscreen Mode. Exiting will terminate the arena.</div>
+                            </RuleItem>
 
-                        <RuleItem>
-                            <div className="rule-header"><Timer size={14}/> Timing</div>
-                            <div className="rule-desc">Fixed duration per question. No manual submission required for time-out.</div>
-                        </RuleItem>
-                    </RulesList>
+                            <RuleItem>
+                                <div className="rule-header"><Timer size={14} /> Timing</div>
+                                <div className="rule-desc">Fixed duration per question. No manual submission required for time-out.</div>
+                            </RuleItem>
+                        </RulesList>
 
-                    <EntryButton onClick={() => setHasAcceptedRules(true)} style={{ width: '100%' }}>
-                        INITIALIZE ARENA SESSION
-                    </EntryButton>
-                </ZolviEntryCard>
-            </EntryWrapper>
-        </PageContainer>
-    );
-}
+                        <EntryButton onClick={() => setHasAcceptedRules(true)} style={{ width: '100%' }}>
+                            INITIALIZE ARENA SESSION
+                        </EntryButton>
+                    </ZolviEntryCard>
+                </EntryWrapper>
+            </PageContainer>
+        );
+    }
 
     return (
         <PageContainer $isBlocked={screenBlocked}>
