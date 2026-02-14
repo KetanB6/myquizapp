@@ -558,7 +558,7 @@ const LiveParticipantsModal = ({ quizId, onClose }) => {
                         gap: '4px',
                         fontWeight: '700'
                       }}>
-                        <div style={{ width: '8px', height: '8px', backgroundColor: 'white', borderRadius: '50%' }} />
+                        <div style={{ width: '8px', height: '8px', color: "white" }} />
                         ONLINE
                       </span>
                     </td>
