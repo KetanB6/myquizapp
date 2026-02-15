@@ -132,68 +132,63 @@ const PlayQuizContent = () => { // Renamed internal component
 };
 
     // --- JOIN QUIZ & FULLSCREEN ---
-    const handleJoinQuiz = async () => {
-        if (!joinData.participantName || !joinData.quizId) {
-            toast.error("CREDENTIALS REQUIRED");
-            return;
-        }
+   const handleJoinQuiz = async () => {
+    if (!joinData.participantName || !joinData.quizId) {
+        toast.error("CREDENTIALS REQUIRED");
+        return;
+    }
 
-        // --- SECURITY CHECK: PREVENT RE-ENTRY ---
-        const fingerprint = getDeviceFingerprint();
-        const lockKey = `quiz_lock_${joinData.quizId}_${fingerprint}`;
-        const isLocked = localStorage.getItem(lockKey);
+    // --- SECURITY CHECK: ONLY PREVENT IF ALREADY FINISHED ---
+    const fingerprint = getDeviceFingerprint();
+    const lockKey = `quiz_lock_${joinData.quizId}_${fingerprint}`;
+    const isLocked = localStorage.getItem(lockKey);
 
-        if (isLocked) {
-            toast.error("ACCESS DENIED: You have already attempted or exited this quiz.");
-            return;
-        }
-        // ----------------------------------------
+    if (isLocked === "SUBMITTED") {
+        toast.error("ACCESS DENIED: You have already submitted this exam.");
+        return;
+    }
+    // -------------------------------------------------------
 
-        setIsLoading(true);
-        try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/Play/${joinData.quizId}/${joinData.participantName}`, {
-                method: 'GET',
-                headers: {
-                    'ngrok-skip-browser-warning': '69420',
-                    'X-API-KEY': process.env.NEXT_PUBLIC_API_KEY
-                },
-            });
+    setIsLoading(true);
+    try {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/Play/${joinData.quizId}/${joinData.participantName}`, {
+            method: 'GET',
+            headers: {
+                'ngrok-skip-browser-warning': '69420',
+                'X-API-KEY': process.env.NEXT_PUBLIC_API_KEY
+            },
+        });
 
-            if (!response.ok) throw new Error(`ACCESS DENIED: Quiz inactive.`);
-            const data = await response.json();
+        if (!response.ok) throw new Error(`ACCESS DENIED: Quiz inactive.`);
+        const data = await response.json();
 
-            if (!data.questions || data.questions.length === 0) {
-                toast.error("ERROR: THIS QUIZ HAS NO QUESTIONS");
-                setIsLoading(false);
-                return;
-            }
-
-            // --- LOCK THE QUIZ IMMEDIATELY ON JOIN ---
-            // This ensures they can't refresh to start over
-            localStorage.setItem(lockKey, "ACTIVE");
-            // -----------------------------------------
-
-            // TRIGGER FULLSCREEN
-            if (document.documentElement.requestFullscreen) {
-                document.documentElement.requestFullscreen().catch(() => {
-                    console.log("Fullscreen blocked");
-                });
-            }
-
-            if (data.quiz?.timePerQ !== undefined) {
-                const convertedSeconds = parseInt(data.quiz.timePerQ) * 60;
-                setSecondsPerQuestion(convertedSeconds);
-                setTimeLeft(convertedSeconds);
-            }
-
-            setQuizData(data);
-            toast.success(`CONNECTION ESTABLISHED`);
-        } catch (error) {
-            toast.error(error.message);
-        } finally {
+        if (!data.questions || data.questions.length === 0) {
+            toast.error("ERROR: THIS QUIZ HAS NO QUESTIONS");
             setIsLoading(false);
+            return;
         }
-    };
+
+        // TRIGGER FULLSCREEN
+        if (document.documentElement.requestFullscreen) {
+            document.documentElement.requestFullscreen().catch(() => {
+                console.log("Fullscreen blocked");
+            });
+        }
+
+        if (data.quiz?.timePerQ !== undefined) {
+            const convertedSeconds = parseInt(data.quiz.timePerQ) * 60;
+            setSecondsPerQuestion(convertedSeconds);
+            setTimeLeft(convertedSeconds);
+        }
+
+        setQuizData(data);
+        toast.success(`CONNECTION ESTABLISHED`);
+    } catch (error) {
+        toast.error(error.message);
+    } finally {
+        setIsLoading(false);
+    }
+};
     useEffect(() => {
         const handleSecurityBreach = () => {
             if (!document.fullscreenElement && quizData) {
@@ -211,44 +206,54 @@ const PlayQuizContent = () => { // Renamed internal component
         setUserAnswers(prev => ({ ...prev, [questionIdx]: optionText }));
     };
 
-    const handleSubmitExam = async () => {
-       
-        const questions = quizData.questions;
-        let currentScore = 0;
-        questions.forEach((q, idx) => {
-            if (userAnswers[idx] === q[q.correctOpt]) currentScore++;
+   const handleSubmitExam = async () => {
+    const questions = quizData.questions;
+    let currentScore = 0;
+    questions.forEach((q, idx) => {
+        if (userAnswers[idx] === q[q.correctOpt]) currentScore++;
+    });
+
+    const finalSubmission = {
+        quizId: parseInt(joinData.quizId),
+        participantName: joinData.participantName,
+        score: currentScore.toString(),
+        outOf: questions.length.toString()
+    };
+
+    setIsLoading(true);
+    try {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/Play/Submit`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json', 
+                'ngrok-skip-browser-warning': '69420',
+                'X-API-KEY': process.env.NEXT_PUBLIC_API_KEY
+            },
+            body: JSON.stringify(finalSubmission)
         });
 
-        const finalSubmission = {
-            quizId: parseInt(joinData.quizId),
-            participantName: joinData.participantName,
-            score: currentScore.toString(),
-            outOf: questions.length.toString()
-        };
+        if (response.ok) {
+            // --- LOCK THE USER NOW THAT THEY HAVE SUBMITTED ---
+            const fingerprint = getDeviceFingerprint();
+            const lockKey = `quiz_lock_${joinData.quizId}_${fingerprint}`;
+            localStorage.setItem(lockKey, "SUBMITTED");
+            // -------------------------------------------------
 
-        setIsLoading(true);
-        try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/Play/Submit`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json', 'ngrok-skip-browser-warning': '69420',
-                    'X-API-KEY': process.env.NEXT_PUBLIC_API_KEY
-                },
-                body: JSON.stringify(finalSubmission)
-            });
-
-            if (response.ok) {
-                setScore(currentScore);
-                setIsSubmitted(true);
-                toast.success("Quiz Submitted Successfully!");
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-            } else throw new Error("SUBMISSION FAILED");
-        } catch (error) {
-            toast.error(error.message);
-        } finally {
-            setIsLoading(false);
-        }
-    };
+            setScore(currentScore);
+            setIsSubmitted(true);
+            toast.success("Quiz Submitted Successfully!");
+            
+            // Exit fullscreen automatically on finish
+            if (document.exitFullscreen) document.exitFullscreen().catch(() => {});
+            
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        } else throw new Error("SUBMISSION FAILED");
+    } catch (error) {
+        toast.error(error.message);
+    } finally {
+        setIsLoading(false);
+    }
+};
     if (!hasAcceptedRules) {
         return (
             <PageContainer>
