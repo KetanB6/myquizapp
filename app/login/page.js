@@ -198,7 +198,7 @@ const Form = () => {
             setUserName(data.user?.name || "User");
             setUserEmail(data.user?.email || "");
             toast.success("Welcome back!");
-            router.push("/");
+            setTimeout(() => (router.push("/")), 800);
         } catch (err) {
             toast.error(err.message);
         } finally {

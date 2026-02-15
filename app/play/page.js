@@ -311,8 +311,8 @@ const PlayQuizContent = () => { // Renamed internal component
                         <Header>
                             <div className="icon-box"><Zap size={24} fill="currentColor" /></div>
                             <div>
-                                <h2>ARENA ACCESS</h2>
-                                <p>INITIALIZE YOUR SESSION</p>
+                                <h2>PLAY QUIZ</h2>
+                                <p>ENTER YOUR DETAILS TO BEGIN</p>
                             </div>
                         </Header>
 
@@ -331,7 +331,7 @@ const PlayQuizContent = () => { // Renamed internal component
                             </InputGroup>
 
                             <InputGroup>
-                                <label>SESSION ID</label>
+                                <label>QUIZ ID</label>
                                 <div className="input-wrapper">
                                     <Hash size={16} className="input-icon" />
                                     <input
@@ -375,7 +375,7 @@ const PlayQuizContent = () => { // Renamed internal component
                             if (!isSubmitted && idx !== currentQuestionIdx) return null;
                             return (
                                 <QuestionCard key={idx} $isSubmitted={isSubmitted}>
-                                    <div className="q-label">SYSTEM_QUERY_{idx + 1}</div>
+                                    <div className="q-label">Q No.{idx + 1}</div>
                                     <h3>{q.question}</h3>
                                     <OptionsGrid>
                                         {["opt1", "opt2", "opt3", "opt4"].map((optKey) => {
